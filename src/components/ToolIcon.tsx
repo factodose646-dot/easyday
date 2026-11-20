@@ -1,9 +1,8 @@
 import React from 'react';
 import {
-  ArrowLeftRight,
-  Calculator,
+  BellRing,
   CalendarDays,
-  ListChecks,
+  HandCoins,
   NotebookPen,
   Wallet,
 } from 'lucide-react';
@@ -22,14 +21,19 @@ const ICON_MAP: Record<
     textClass: string;
   }
 > = {
-  calculator: {
-    Icon: Calculator,
-    bgClass: 'bg-blue-600',
-    textClass: 'text-white',
+  'udhaar-manager': {
+    Icon: HandCoins,
+    bgClass: 'bg-cyan-500',
+    textClass: 'text-[#040D21]',
   },
-  'age-calculator': {
-    Icon: CalendarDays,
-    bgClass: 'bg-emerald-600',
+  'bills-reminder': {
+    Icon: BellRing,
+    bgClass: 'bg-yellow-400',
+    textClass: 'text-[#040D21]',
+  },
+  'expense-tracker': {
+    Icon: Wallet,
+    bgClass: 'bg-orange-500',
     textClass: 'text-white',
   },
   notes: {
@@ -37,19 +41,9 @@ const ICON_MAP: Record<
     bgClass: 'bg-amber-400',
     textClass: 'text-slate-900',
   },
-  'todo-list': {
-    Icon: ListChecks,
-    bgClass: 'bg-indigo-600',
-    textClass: 'text-white',
-  },
-  'expense-tracker': {
-    Icon: Wallet,
-    bgClass: 'bg-orange-500',
-    textClass: 'text-white',
-  },
-  'unit-converter': {
-    Icon: ArrowLeftRight,
-    bgClass: 'bg-teal-600',
+  'age-calculator': {
+    Icon: CalendarDays,
+    bgClass: 'bg-emerald-600',
     textClass: 'text-white',
   },
 };

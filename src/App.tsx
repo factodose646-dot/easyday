@@ -26,6 +26,8 @@ import {
   registerAndroidBackButton,
   syncAndroidStatusBar,
 } from './utils/androidBridge';
+import { syncAllBillRemindersAndOverdueAlerts } from './utils/billNotifications';
+import { billsStorage } from './utils/storage';
 
 const STORAGE_LANG_KEY = 'easyday-language';
 const STORAGE_THEME_KEY = 'easyday-theme';
@@ -167,6 +169,14 @@ export default function App() {
 
     void syncAndroidStatusBar(theme, showSplash);
   }, [theme, showSplash]);
+
+  // Sync scheduled Android bill reminders & overdue alerts on app startup
+  useEffect(() => {
+    if (showSplash) return;
+    const storedBills = billsStorage.loadBills();
+    if (storedBills.length === 0) return;
+    void syncAllBillRemindersAndOverdueAlerts(storedBills, language);
+  }, [showSplash, language]);
 
   const handleSelectTab = useCallback(
     (tab: NavTab) => {

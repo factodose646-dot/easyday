@@ -176,8 +176,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
           <h1 className="mt-4 sm:mt-5 font-display font-extrabold text-3xl min-[380px]:text-4xl sm:text-[42px] tracking-[0.22em] ps-[0.22em] leading-tight bg-gradient-to-b from-[#FFE57F] via-[#FACC15] to-[#E59A00] bg-clip-text text-transparent">
             EASYDAY
           </h1>
-          <p className="mt-1.5 text-[11px] sm:text-xs font-medium tracking-[0.2em] text-slate-300/90 uppercase">
-            EVERYDAY TOOLS &amp; UTILITIES
+          <p className="mt-1.5 text-[11px] sm:text-xs font-medium tracking-[0.2em] text-slate-300/90">
+            make you easy
           </p>
         </div>
 

@@ -5,12 +5,11 @@ export type Theme = 'light' | 'dark';
 export type NavTab = 'home' | 'tools' | 'settings';
 
 export type ToolId =
-  | 'calculator'
-  | 'age-calculator'
-  | 'notes'
-  | 'todo-list'
+  | 'udhaar-manager'
+  | 'bills-reminder'
   | 'expense-tracker'
-  | 'unit-converter';
+  | 'notes'
+  | 'age-calculator';
 
 export type ToolCategory = 'all' | 'utilities' | 'productivity' | 'finance';
 

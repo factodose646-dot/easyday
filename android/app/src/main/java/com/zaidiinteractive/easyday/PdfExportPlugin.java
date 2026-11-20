@@ -227,6 +227,37 @@ public class PdfExportPlugin extends Plugin {
         }
     }
 
+    @PluginMethod
+    public void shareText(PluginCall call) {
+        String text = call.getString("text", "");
+        String title = call.getString("title", "EasyDay");
+        if (text == null || text.trim().isEmpty()) {
+            call.reject("Text content is required.");
+            return;
+        }
+
+        Intent sendIntent = new Intent(Intent.ACTION_SEND);
+        sendIntent.setType("text/plain");
+        sendIntent.putExtra(Intent.EXTRA_SUBJECT, title);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, text);
+
+        Intent chooser = Intent.createChooser(sendIntent, title);
+        try {
+            Activity activity = getActivity();
+            if (activity != null) {
+                activity.startActivity(chooser);
+            } else {
+                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(chooser);
+            }
+            JSObject res = new JSObject();
+            res.put("shared", true);
+            call.resolve(res);
+        } catch (ActivityNotFoundException ex) {
+            call.reject("No app available to share this text.", ex);
+        }
+    }
+
     private OutputStream openWritableStream(ContentResolver resolver, Uri uri) throws IOException {
         try {
             OutputStream stream = resolver.openOutputStream(uri, "wt");

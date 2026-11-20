@@ -1,21 +1,12 @@
 import { Language } from '../types';
-import { TransactionCategory } from '../utils/storage';
-import { ConverterCategory, UnitCode } from '../utils/unitConverter';
+import {
+  BillCategory,
+  BillReminderTiming,
+  BillRepeat,
+  TransactionCategory,
+} from '../utils/storage';
 
 export interface ToolTranslationBundle {
-  calculator: {
-    historyTitle: string;
-    clearHistory: string;
-    noHistory: string;
-    showHistory: string;
-    hideHistory: string;
-    tapToReuse: string;
-    errors: {
-      divideByZero: string;
-      invalidExpression: string;
-      overflow: string;
-    };
-  };
   age: {
     dobLabel: string;
     calculateBtn: string;
@@ -54,25 +45,6 @@ export interface ToolTranslationBundle {
     confirmDeleteBody: string;
     cancelBtn: string;
     confirmBtn: string;
-  };
-  todo: {
-    inputPlaceholder: string;
-    addBtn: string;
-    emptyInputError: string;
-    progressLabel: string;
-    tasksCompletedOf: string;
-    pendingTitle: string;
-    completedTitle: string;
-    noPending: string;
-    noCompleted: string;
-    createdLabel: string;
-    saveBtn: string;
-    cancelBtn: string;
-    editBtn: string;
-    deleteBtn: string;
-    clearCompletedBtn: string;
-    confirmClearTitle: string;
-    confirmClearBody: string;
   };
   expense: {
     currencyCode: string;
@@ -184,38 +156,184 @@ export interface ToolTranslationBundle {
     };
     categories: Record<TransactionCategory, string>;
   };
-  converter: {
-    valueLabel: string;
-    valuePlaceholder: string;
-    fromLabel: string;
-    toLabel: string;
-    swapLabel: string;
-    resultLabel: string;
-    allUnitsTitle: string;
-    categories: Record<ConverterCategory, string>;
-    units: Record<UnitCode, string>;
+  udhaar: {
+    givenTotalLabel: string;
+    givenSubLabel: string;
+    borrowedTotalLabel: string;
+    borrowedSubLabel: string;
+    netBalanceLabel: string;
+    netReceivableNote: string;
+    netPayableNote: string;
+    netSettledNote: string;
+    activeCountLabel: string;
+    activeSubLabel: string;
+    tabPeople: string;
+    tabTransactions: string;
+    tabSummary: string;
+    addPersonBtn: string;
+    addEntryBtn: string;
+    searchPlaceholder: string;
+    filterAll: string;
+    filterGiven: string;
+    filterBorrowed: string;
+    statusAll: string;
+    statusPending: string;
+    statusPartial: string;
+    statusPaid: string;
+    willReceiveBadge: string;
+    willPayBadge: string;
+    settledBadge: string;
+    noContactsTitle: string;
+    noContactsBody: string;
+    noTransactionsTitle: string;
+    noTransactionsBody: string;
+    backToPeople: string;
+    shareWhatsappStatement: string;
+    shareEntryBtn: string;
+    copyStatementBtn: string;
+    copiedFeedback: string;
+    editPersonBtn: string;
+    deletePersonBtn: string;
+    recordPaymentBtn: string;
+    markFullPaidBtn: string;
+    paymentHistoryTitle: string;
+    noPaymentsYet: string;
+    remainingLabel: string;
+    paidSoFarLabel: string;
+    totalAmountLabel: string;
+    dueDateLabel: string;
+    optionalDueDate: string;
+    personModalAddTitle: string;
+    personModalEditTitle: string;
+    personNameLabel: string;
+    personNamePlaceholder: string;
+    personPhoneLabel: string;
+    personPhonePlaceholder: string;
+    entryModalAddTitle: string;
+    entryModalEditTitle: string;
+    selectPersonLabel: string;
+    quickNewPersonToggle: string;
+    directionLabel: string;
+    directionGivenOption: string;
+    directionBorrowedOption: string;
+    amountLabel: string;
+    dateLabel: string;
+    descriptionLabel: string;
+    descriptionPlaceholder: string;
+    paymentModalTitle: string;
+    paymentAmountLabel: string;
+    paymentDateLabel: string;
+    paymentNoteLabel: string;
+    paymentNotePlaceholder: string;
+    fillRemainingBtn: string;
+    confirmPaymentBtn: string;
+    saveBtn: string;
+    updateBtn: string;
+    cancelBtn: string;
+    deleteBtn: string;
+    editBtn: string;
+    confirmDeletePersonTitle: string;
+    confirmDeletePersonBody: string;
+    confirmDeleteEntryTitle: string;
+    confirmDeleteEntryBody: string;
+    confirmDeletePaymentTitle: string;
+    confirmDeletePaymentBody: string;
+    monthlySummaryTitle: string;
+    overallSummaryTitle: string;
+    selectMonthLabel: string;
+    givenInMonthLabel: string;
+    borrowedInMonthLabel: string;
+    collectedInMonthLabel: string;
+    returnedInMonthLabel: string;
     errors: {
-      invalidNumber: string;
-      belowAbsoluteZero: string;
+      emptyName: string;
+      selectPerson: string;
+      invalidAmount: string;
+      paymentExceedsRemaining: string;
+      invalidDate: string;
+    };
+  };
+  bills: {
+    upcomingCountLabel: string;
+    pendingAmountLabel: string;
+    paidMonthLabel: string;
+    overdueCountLabel: string;
+    notificationBannerTitle: string;
+    notificationPermissionMissing: string;
+    notificationPermissionReady: string;
+    enableNotificationsBtn: string;
+    testNotificationBtn: string;
+    testNotificationSent: string;
+    viewList: string;
+    viewCalendar: string;
+    viewHistory: string;
+    addBillBtn: string;
+    searchPlaceholder: string;
+    filterAllCategories: string;
+    statusAll: string;
+    statusOverdue: string;
+    statusUpcoming: string;
+    statusPaid: string;
+    markPaidBtn: string;
+    paidSuccessMsg: string;
+    recurringGeneratedMsg: string;
+    editBtn: string;
+    deleteBtn: string;
+    dueOnLabel: string;
+    overdueByDays: string;
+    dueTodayLabel: string;
+    dueInDays: string;
+    paidOnLabel: string;
+    accountRefLabel: string;
+    providerLabel: string;
+    viewPhotoBtn: string;
+    photoPreviewTitle: string;
+    closeBtn: string;
+    noBillsTitle: string;
+    noBillsBody: string;
+    noHistoryTitle: string;
+    noHistoryBody: string;
+    calendarTodayBtn: string;
+    calendarSelectedDayTitle: string;
+    calendarNoBillsOnDay: string;
+    modalAddTitle: string;
+    modalEditTitle: string;
+    billNameLabel: string;
+    billNamePlaceholder: string;
+    categoryLabel: string;
+    providerFieldLabel: string;
+    providerPlaceholder: string;
+    amountFieldLabel: string;
+    dueDateFieldLabel: string;
+    accountNumberLabel: string;
+    accountNumberPlaceholder: string;
+    repeatLabel: string;
+    customDaysLabel: string;
+    reminderTimingLabel: string;
+    photoAttachLabel: string;
+    uploadPhotoBtn: string;
+    removePhotoBtn: string;
+    photoHint: string;
+    saveBillBtn: string;
+    updateBillBtn: string;
+    cancelBtn: string;
+    confirmDeleteTitle: string;
+    confirmDeleteBody: string;
+    categories: Record<BillCategory, string>;
+    repeats: Record<BillRepeat, string>;
+    timings: Record<BillReminderTiming, string>;
+    errors: {
+      emptyName: string;
+      invalidAmount: string;
+      invalidDate: string;
+      invalidCustomDays: string;
+      imageReadFailed: string;
     };
   };
 }
 
 export const TOOL_TRANSLATIONS: Record<Language, ToolTranslationBundle> = {
   en: {
-    calculator: {
-      historyTitle: 'Calculation History',
-      clearHistory: 'Clear History',
-      noHistory: 'Your completed calculations will appear here.',
-      showHistory: 'History',
-      hideHistory: 'Keypad',
-      tapToReuse: 'Tap any entry to reuse its result',
-      errors: {
-        divideByZero: 'Cannot divide by zero.',
-        invalidExpression: 'Invalid mathematical expression.',
-        overflow: 'Number is too large to calculate.',
-      },
-    },
     age: {
       dobLabel: 'Date of Birth',
       calculateBtn: 'Calculate Age',
@@ -254,25 +372,6 @@ export const TOOL_TRANSLATIONS: Record<Language, ToolTranslationBundle> = {
       confirmDeleteBody: 'This note will be permanently removed from this device.',
       cancelBtn: 'Cancel',
       confirmBtn: 'Delete',
-    },
-    todo: {
-      inputPlaceholder: 'Add a new task...',
-      addBtn: 'Add Task',
-      emptyInputError: 'Please enter a task description before adding.',
-      progressLabel: 'Daily Progress',
-      tasksCompletedOf: 'completed',
-      pendingTitle: 'Pending Tasks',
-      completedTitle: 'Completed Tasks',
-      noPending: 'All caught up! No pending tasks.',
-      noCompleted: 'No tasks completed yet.',
-      createdLabel: 'Created',
-      saveBtn: 'Save',
-      cancelBtn: 'Cancel',
-      editBtn: 'Edit',
-      deleteBtn: 'Delete',
-      clearCompletedBtn: 'Clear Completed',
-      confirmClearTitle: 'Clear Completed Tasks?',
-      confirmClearBody: 'All completed tasks will be permanently removed.',
     },
     expense: {
       currencyCode: 'PKR',
@@ -347,7 +446,7 @@ export const TOOL_TRANSLATIONS: Record<Language, ToolTranslationBundle> = {
       backBtn: 'Back',
       pdfLabels: {
         reportTitle: 'EasyDay — Expense Report',
-        subtitle: 'Everything Made Easy · ZAIDI INTERACTIVE',
+        subtitle: 'make you easy · ZAIDI INTERACTIVE',
         dailyBadge: 'DAILY REPORT',
         weeklyBadge: 'WEEKLY REPORT',
         monthlyBadge: 'MONTHLY REPORT',
@@ -399,61 +498,207 @@ export const TOOL_TRANSLATIONS: Record<Language, ToolTranslationBundle> = {
         other: 'Other',
       },
     },
-    converter: {
-      valueLabel: 'Enter Value',
-      valuePlaceholder: 'Enter a number...',
-      fromLabel: 'From',
-      toLabel: 'To',
-      swapLabel: 'Swap units',
-      resultLabel: 'Converted Result',
-      allUnitsTitle: 'All Conversions in This Category',
-      categories: {
-        length: 'Length',
-        weight: 'Weight',
-        temperature: 'Temperature',
-        volume: 'Volume',
+    udhaar: {
+      givenTotalLabel: 'Total Money Given',
+      givenSubLabel: 'Mujhe lene hain',
+      borrowedTotalLabel: 'Total Borrowed',
+      borrowedSubLabel: 'Mujhe dene hain',
+      netBalanceLabel: 'Outstanding Balance',
+      netReceivableNote: 'Net Receivable',
+      netPayableNote: 'Net Payable',
+      netSettledNote: 'All Settled',
+      activeCountLabel: 'Active Records',
+      activeSubLabel: 'Pending & Partial',
+      tabPeople: 'People Ledger',
+      tabTransactions: 'All Entries',
+      tabSummary: 'Monthly & Overall',
+      addPersonBtn: 'Add Person',
+      addEntryBtn: 'New Udhaar',
+      searchPlaceholder: 'Search by person name, phone, or note...',
+      filterAll: 'All',
+      filterGiven: 'Given',
+      filterBorrowed: 'Borrowed',
+      statusAll: 'All Status',
+      statusPending: 'Pending',
+      statusPartial: 'Partial',
+      statusPaid: 'Paid',
+      willReceiveBadge: 'To Receive',
+      willPayBadge: 'To Pay',
+      settledBadge: 'Settled',
+      noContactsTitle: 'No Udhaar contacts yet',
+      noContactsBody:
+        'Add a person or record your first money given/borrowed entry to start tracking balances.',
+      noTransactionsTitle: 'No matching Udhaar records',
+      noTransactionsBody: 'Adjust your filters or tap "New Udhaar" to record a transaction.',
+      backToPeople: 'All People',
+      shareWhatsappStatement: 'WhatsApp Statement',
+      shareEntryBtn: 'Share',
+      copyStatementBtn: 'Copy Statement',
+      copiedFeedback: 'Copied to clipboard',
+      editPersonBtn: 'Edit Person',
+      deletePersonBtn: 'Delete Person',
+      recordPaymentBtn: 'Add Payment',
+      markFullPaidBtn: 'Mark Paid',
+      paymentHistoryTitle: 'Payment History',
+      noPaymentsYet: 'No payments recorded yet.',
+      remainingLabel: 'Remaining',
+      paidSoFarLabel: 'Paid',
+      totalAmountLabel: 'Total',
+      dueDateLabel: 'Due Date',
+      optionalDueDate: 'Due Date (Optional)',
+      personModalAddTitle: 'Add Contact',
+      personModalEditTitle: 'Edit Contact',
+      personNameLabel: 'Person Name',
+      personNamePlaceholder: 'e.g. Bilal Ahmed / Ali Kiryana',
+      personPhoneLabel: 'Phone Number (Optional)',
+      personPhonePlaceholder: 'e.g. 0300-1234567',
+      entryModalAddTitle: 'Record Udhaar Entry',
+      entryModalEditTitle: 'Edit Udhaar Entry',
+      selectPersonLabel: 'Select Person',
+      quickNewPersonToggle: '+ Quick Add New Person',
+      directionLabel: 'Transaction Type',
+      directionGivenOption: 'Money Given (Mujhe lene hain)',
+      directionBorrowedOption: 'Money Borrowed (Mujhe dene hain)',
+      amountLabel: 'Amount (PKR)',
+      dateLabel: 'Transaction Date',
+      descriptionLabel: 'Description / Note',
+      descriptionPlaceholder: 'e.g. Shop goods, emergency loan, advance...',
+      paymentModalTitle: 'Record Payment',
+      paymentAmountLabel: 'Payment Amount (PKR)',
+      paymentDateLabel: 'Payment Date',
+      paymentNoteLabel: 'Payment Note (Optional)',
+      paymentNotePlaceholder: 'e.g. Cash received, JazzCash, EasyPaisa...',
+      fillRemainingBtn: 'Full Remaining',
+      confirmPaymentBtn: 'Save Payment',
+      saveBtn: 'Save',
+      updateBtn: 'Update',
+      cancelBtn: 'Cancel',
+      deleteBtn: 'Delete',
+      editBtn: 'Edit',
+      confirmDeletePersonTitle: 'Delete Contact & Records?',
+      confirmDeletePersonBody:
+        'Deleting this person will permanently remove their profile and all associated Udhaar transactions.',
+      confirmDeleteEntryTitle: 'Delete Udhaar Record?',
+      confirmDeleteEntryBody:
+        'This transaction and its payment history will be permanently removed and totals recalculated.',
+      confirmDeletePaymentTitle: 'Remove Payment Entry?',
+      confirmDeletePaymentBody:
+        'Removing this payment will restore the amount back to the remaining balance.',
+      monthlySummaryTitle: 'Monthly Summary',
+      overallSummaryTitle: 'Overall Account Summary',
+      selectMonthLabel: 'Select Month',
+      givenInMonthLabel: 'Given in Month',
+      borrowedInMonthLabel: 'Borrowed in Month',
+      collectedInMonthLabel: 'Collected in Month',
+      returnedInMonthLabel: 'Returned in Month',
+      errors: {
+        emptyName: 'Please enter the person name.',
+        selectPerson: 'Please select or add a person.',
+        invalidAmount: 'Please enter a valid amount greater than 0.',
+        paymentExceedsRemaining: 'Payment cannot exceed remaining balance.',
+        invalidDate: 'Please choose a valid date.',
       },
-      units: {
-        mm: 'Millimeter (mm)',
-        cm: 'Centimeter (cm)',
-        m: 'Meter (m)',
-        km: 'Kilometer (km)',
-        in: 'Inch (in)',
-        ft: 'Foot (ft)',
-        yd: 'Yard (yd)',
-        mi: 'Mile (mi)',
-        mg: 'Milligram (mg)',
-        g: 'Gram (g)',
-        kg: 'Kilogram (kg)',
-        lb: 'Pound (lb)',
-        oz: 'Ounce (oz)',
-        c: 'Celsius (°C)',
-        f: 'Fahrenheit (°F)',
-        k: 'Kelvin (K)',
-        ml: 'Milliliter (mL)',
-        l: 'Liter (L)',
-        gal: 'Gallon (gal)',
+    },
+    bills: {
+      upcomingCountLabel: 'Upcoming Bills',
+      pendingAmountLabel: 'Total Pending',
+      paidMonthLabel: 'Paid This Month',
+      overdueCountLabel: 'Overdue Bills',
+      notificationBannerTitle: 'Android Bill Reminders',
+      notificationPermissionMissing:
+        'Enable notification permission so EasyDay can alert you before due dates and on overdue bills.',
+      notificationPermissionReady:
+        'Reminders active · Local alerts scheduled for pending bills.',
+      enableNotificationsBtn: 'Allow Alerts',
+      testNotificationBtn: 'Test Alert',
+      testNotificationSent: 'Test bill reminder notification triggered.',
+      viewList: 'Bills List',
+      viewCalendar: 'Calendar',
+      viewHistory: 'Payment History',
+      addBillBtn: 'Add Bill',
+      searchPlaceholder: 'Search bill name, provider, or account #...',
+      filterAllCategories: 'All Categories',
+      statusAll: 'All',
+      statusOverdue: 'Overdue',
+      statusUpcoming: 'Pending',
+      statusPaid: 'Paid',
+      markPaidBtn: 'Mark Paid',
+      paidSuccessMsg: 'Bill marked as paid.',
+      recurringGeneratedMsg: 'Next recurring bill scheduled automatically:',
+      editBtn: 'Edit',
+      deleteBtn: 'Delete',
+      dueOnLabel: 'Due',
+      overdueByDays: 'days overdue',
+      dueTodayLabel: 'Due Today',
+      dueInDays: 'days left',
+      paidOnLabel: 'Paid on',
+      accountRefLabel: 'Ref / Consumer #',
+      providerLabel: 'Provider',
+      viewPhotoBtn: 'View Bill Photo',
+      photoPreviewTitle: 'Attached Bill Photo',
+      closeBtn: 'Close',
+      noBillsTitle: 'No bills scheduled',
+      noBillsBody:
+        'Tap "Add Bill" to track electricity, gas, internet, rent, or school fee deadlines.',
+      noHistoryTitle: 'No bill payments recorded yet',
+      noHistoryBody: 'Marked-as-paid bills appear here with date and amount history.',
+      calendarTodayBtn: 'Today',
+      calendarSelectedDayTitle: 'Bills Due on',
+      calendarNoBillsOnDay: 'No bills due on this date.',
+      modalAddTitle: 'Add Bill Reminder',
+      modalEditTitle: 'Edit Bill',
+      billNameLabel: 'Bill Name',
+      billNamePlaceholder: 'e.g. Home Electricity Bill',
+      categoryLabel: 'Bill Category',
+      providerFieldLabel: 'Provider / Company (Optional)',
+      providerPlaceholder: 'e.g. LESCO, K-Electric, SNGPL, PTCL',
+      amountFieldLabel: 'Amount (PKR)',
+      dueDateFieldLabel: 'Due Date',
+      accountNumberLabel: 'Account / Reference Number (Optional)',
+      accountNumberPlaceholder: 'e.g. 14-11223-445566',
+      repeatLabel: 'Repeat Frequency',
+      customDaysLabel: 'Repeat Every (Days)',
+      reminderTimingLabel: 'Reminder Timing',
+      photoAttachLabel: 'Bill Photo (Optional)',
+      uploadPhotoBtn: 'Attach Photo',
+      removePhotoBtn: 'Remove',
+      photoHint: 'Saved locally on device only.',
+      saveBillBtn: 'Save Bill',
+      updateBillBtn: 'Update Bill',
+      cancelBtn: 'Cancel',
+      confirmDeleteTitle: 'Delete Bill?',
+      confirmDeleteBody:
+        'This bill and its scheduled reminder will be permanently removed.',
+      categories: {
+        electricity: 'Electricity',
+        gas: 'Gas',
+        water: 'Water',
+        internet: 'Internet / Wi-Fi',
+        mobile: 'Mobile Packages',
+        rent: 'House Rent',
+        school: 'School Fees',
+        other: 'Other Custom Bills',
+      },
+      repeats: {
+        'one-time': 'One-time',
+        monthly: 'Monthly',
+        custom: 'Custom Days',
+      },
+      timings: {
+        '1-day': '1 day before',
+        '3-days': '3 days before',
+        'on-due': 'On due date',
       },
       errors: {
-        invalidNumber: 'Enter a valid numeric value to convert.',
-        belowAbsoluteZero: 'Temperature cannot be below absolute zero (-273.15 °C).',
+        emptyName: 'Please enter a bill name.',
+        invalidAmount: 'Please enter a valid amount greater than 0.',
+        invalidDate: 'Please select a valid due date.',
+        invalidCustomDays: 'Custom repeat days must be at least 1.',
+        imageReadFailed: 'Could not read the selected image.',
       },
     },
   },
   ur: {
-    calculator: {
-      historyTitle: 'حساب کی ہسٹری',
-      clearHistory: 'ہسٹری صاف کریں',
-      noHistory: 'آپ کے مکمل حساب کتاب یہاں ظاہر ہوں گے۔',
-      showHistory: 'ہسٹری',
-      hideHistory: 'کی پیڈ',
-      tapToReuse: 'نتیجہ دوبارہ استعمال کرنے کے لیے ٹیپ کریں',
-      errors: {
-        divideByZero: 'صفر پر تقسیم ممکن نہیں ہے۔',
-        invalidExpression: 'حسابی عبارت درست نہیں ہے۔',
-        overflow: 'یہ عدد حساب کے لیے بہت بڑا ہے۔',
-      },
-    },
     age: {
       dobLabel: 'تاریخ پیدائش',
       calculateBtn: 'عمر معلوم کریں',
@@ -492,25 +737,6 @@ export const TOOL_TRANSLATIONS: Record<Language, ToolTranslationBundle> = {
       confirmDeleteBody: 'یہ نوٹ اس ڈیوائس سے مستقل طور پر حذف ہو جائے گا۔',
       cancelBtn: 'منسوخ کریں',
       confirmBtn: 'حذف کریں',
-    },
-    todo: {
-      inputPlaceholder: 'نیا کام شامل کریں...',
-      addBtn: 'شامل کریں',
-      emptyInputError: 'براہ کرم شامل کرنے سے پہلے کام تحریر کریں۔',
-      progressLabel: 'آج کی پیشرفت',
-      tasksCompletedOf: 'مکمل',
-      pendingTitle: 'باقی کام',
-      completedTitle: 'مکمل شدہ کام',
-      noPending: 'شاباش! کوئی کام باقی نہیں ہے۔',
-      noCompleted: 'ابھی کوئی کام مکمل نہیں ہوا۔',
-      createdLabel: 'شامل کردہ',
-      saveBtn: 'محفوظ کریں',
-      cancelBtn: 'منسوخ کریں',
-      editBtn: 'ترمیم',
-      deleteBtn: 'حذف کریں',
-      clearCompletedBtn: 'مکمل کام صاف کریں',
-      confirmClearTitle: 'مکمل شدہ کام صاف کریں؟',
-      confirmClearBody: 'تمام مکمل شدہ کام مستقل طور پر ہٹا دیے جائیں گے۔',
     },
     expense: {
       currencyCode: 'PKR',
@@ -585,7 +811,7 @@ export const TOOL_TRANSLATIONS: Record<Language, ToolTranslationBundle> = {
       backBtn: 'واپس',
       pdfLabels: {
         reportTitle: 'EasyDay — اخراجات اور آمدنی کی رپورٹ',
-        subtitle: 'Everything Made Easy · ZAIDI INTERACTIVE',
+        subtitle: 'make you easy · ZAIDI INTERACTIVE',
         dailyBadge: 'روزانہ رپورٹ',
         weeklyBadge: 'ہفتہ وار رپورٹ',
         monthlyBadge: 'ماہانہ رپورٹ',
@@ -636,44 +862,203 @@ export const TOOL_TRANSLATIONS: Record<Language, ToolTranslationBundle> = {
         other: 'دیگر',
       },
     },
-    converter: {
-      valueLabel: 'قدر درج کریں',
-      valuePlaceholder: 'عدد لکھیں...',
-      fromLabel: 'اس اکائی سے',
-      toLabel: 'اس اکائی میں',
-      swapLabel: 'اکائیاں تبدیل کریں',
-      resultLabel: 'تبدیل شدہ نتیجہ',
-      allUnitsTitle: 'اس زمرے کی تمام اکائیاں',
-      categories: {
-        length: 'لمبائی',
-        weight: 'وزن',
-        temperature: 'درجہ حرارت',
-        volume: 'حجم',
+    udhaar: {
+      givenTotalLabel: 'کل دی گئی رقم',
+      givenSubLabel: 'مجھے لینے ہیں',
+      borrowedTotalLabel: 'کل لی گئی رقم',
+      borrowedSubLabel: 'مجھے دینے ہیں',
+      netBalanceLabel: 'مجموعی باقی حساب',
+      netReceivableNote: 'آپ کو ملنے ہیں',
+      netPayableNote: 'آپ نے دینے ہیں',
+      netSettledNote: 'حساب برابر',
+      activeCountLabel: 'جاری ریکارڈ',
+      activeSubLabel: 'باقی اور جزوی',
+      tabPeople: 'افراد کا کھاتہ',
+      tabTransactions: 'تمام اندراجات',
+      tabSummary: 'ماہانہ اور مجموعی',
+      addPersonBtn: 'نیا شخص',
+      addEntryBtn: 'نیا ادھار',
+      searchPlaceholder: 'نام، فون نمبر یا تفصیل سے تلاش کریں...',
+      filterAll: 'سب',
+      filterGiven: 'دیے گئے',
+      filterBorrowed: 'لیے گئے',
+      statusAll: 'سب حالتیں',
+      statusPending: 'باقی',
+      statusPartial: 'جزوی ادا',
+      statusPaid: 'مکمل ادا',
+      willReceiveBadge: 'لینے ہیں',
+      willPayBadge: 'دینے ہیں',
+      settledBadge: 'برابر',
+      noContactsTitle: 'ابھی کوئی ادھار کھاتہ موجود نہیں',
+      noContactsBody:
+        'حساب کتاب شروع کرنے کے لیے نیا شخص شامل کریں یا پہلا ادھار اندراج درج کریں۔',
+      noTransactionsTitle: 'کوئی ادھار ریکارڈ نہیں ملا',
+      noTransactionsBody: 'فلٹر تبدیل کریں یا نیا اندراج شامل کرنے کے لیے "نیا ادھار" پر ٹیپ کریں۔',
+      backToPeople: 'تمام افراد',
+      shareWhatsappStatement: 'واٹس ایپ اسٹیٹمنٹ',
+      shareEntryBtn: 'شیئر',
+      copyStatementBtn: 'اسٹیٹمنٹ کاپی کریں',
+      copiedFeedback: 'کلپ بورڈ پر کاپی ہو گیا',
+      editPersonBtn: 'ترمیم',
+      deletePersonBtn: 'شخص حذف کریں',
+      recordPaymentBtn: 'ادائیگی درج کریں',
+      markFullPaidBtn: 'مکمل ادا',
+      paymentHistoryTitle: 'ادائیگیوں کی ہسٹری',
+      noPaymentsYet: 'ابھی کوئی ادائیگی درج نہیں ہوئی۔',
+      remainingLabel: 'باقی',
+      paidSoFarLabel: 'وصول/ادا',
+      totalAmountLabel: 'کل رقم',
+      dueDateLabel: 'واپسی کی تاریخ',
+      optionalDueDate: 'واپسی کی تاریخ (اختیاری)',
+      personModalAddTitle: 'نیا شخص شامل کریں',
+      personModalEditTitle: 'شخص کی تفصیل میں ترمیم',
+      personNameLabel: 'شخص کا نام',
+      personNamePlaceholder: 'مثلاً بلال احمد / علی کریانہ',
+      personPhoneLabel: 'فون نمبر (اختیاری)',
+      personPhonePlaceholder: 'مثلاً 0300-1234567',
+      entryModalAddTitle: 'نیا ادھار اندراج',
+      entryModalEditTitle: 'ادھار اندراج میں ترمیم',
+      selectPersonLabel: 'شخص منتخب کریں',
+      quickNewPersonToggle: '+ نیا شخص فوری شامل کریں',
+      directionLabel: 'لین دین کی قسم',
+      directionGivenOption: 'رقم دی (مجھے لینے ہیں)',
+      directionBorrowedOption: 'رقم لی (مجھے دینے ہیں)',
+      amountLabel: 'رقم (PKR)',
+      dateLabel: 'تاریخ',
+      descriptionLabel: 'تفصیل / نوٹ',
+      descriptionPlaceholder: 'مثلاً دکان کا سامان، قرض یا پیشگی...',
+      paymentModalTitle: 'ادائیگی / وصولی درج کریں',
+      paymentAmountLabel: 'ادائیگی کی رقم (PKR)',
+      paymentDateLabel: 'ادائیگی کی تاریخ',
+      paymentNoteLabel: 'نوٹ (اختیاری)',
+      paymentNotePlaceholder: 'مثلاً نقد، جیز کیش یا ایزی پیسہ...',
+      fillRemainingBtn: 'مکمل باقی رقم',
+      confirmPaymentBtn: 'ادائیگی محفوظ کریں',
+      saveBtn: 'محفوظ کریں',
+      updateBtn: 'اپ ڈیٹ کریں',
+      cancelBtn: 'منسوخ کریں',
+      deleteBtn: 'حذف کریں',
+      editBtn: 'ترمیم',
+      confirmDeletePersonTitle: 'شخص اور اس کا کھاتہ حذف کریں؟',
+      confirmDeletePersonBody:
+        'اس شخص کو حذف کرنے سے اس کے تمام ادھار ریکارڈ مستقل طور پر ختم ہو جائیں گے۔',
+      confirmDeleteEntryTitle: 'ادھار ریکارڈ حذف کریں؟',
+      confirmDeleteEntryBody:
+        'یہ اندراج اور اس کی ادائیگیوں کی ہسٹری مستقل طور پر حذف ہو جائے گی۔',
+      confirmDeletePaymentTitle: 'ادائیگی کا اندراج ہٹائیں؟',
+      confirmDeletePaymentBody:
+        'یہ ادائیگی ہٹانے سے رقم دوبارہ باقی کھاتے میں شامل ہو جائے گی۔',
+      monthlySummaryTitle: 'ماہانہ خلاصہ',
+      overallSummaryTitle: 'مجموعی کھاتہ خلاصہ',
+      selectMonthLabel: 'مہینہ منتخب کریں',
+      givenInMonthLabel: 'اس ماہ دی گئی رقم',
+      borrowedInMonthLabel: 'اس ماہ لی گئی رقم',
+      collectedInMonthLabel: 'اس ماہ وصول شدہ',
+      returnedInMonthLabel: 'اس ماہ واپس کی گئی',
+      errors: {
+        emptyName: 'براہ کرم شخص کا نام درج کریں۔',
+        selectPerson: 'براہ کرم کوئی شخص منتخب کریں یا نیا شامل کریں۔',
+        invalidAmount: 'براہ کرم صفر سے بڑی درست رقم درج کریں۔',
+        paymentExceedsRemaining: 'ادائیگی باقی رقم سے زیادہ نہیں ہو سکتی۔',
+        invalidDate: 'براہ کرم درست تاریخ منتخب کریں۔',
       },
-      units: {
-        mm: 'ملی میٹر (mm)',
-        cm: 'سینٹی میٹر (cm)',
-        m: 'میٹر (m)',
-        km: 'کلومیٹر (km)',
-        in: 'انچ (in)',
-        ft: 'فٹ (ft)',
-        yd: 'گز (yd)',
-        mi: 'میل (mi)',
-        mg: 'ملی گرام (mg)',
-        g: 'گرام (g)',
-        kg: 'کلوگرام (kg)',
-        lb: 'پاؤنڈ (lb)',
-        oz: 'اونس (oz)',
-        c: 'سیلسیئس (°C)',
-        f: 'فارن ہائیٹ (°F)',
-        k: 'کیلون (K)',
-        ml: 'ملی لیٹر (mL)',
-        l: 'لیٹر (L)',
-        gal: 'گیلن (gal)',
+    },
+    bills: {
+      upcomingCountLabel: 'آنے والے بلز',
+      pendingAmountLabel: 'کل واجب الادا رقم',
+      paidMonthLabel: 'اس ماہ ادا شدہ',
+      overdueCountLabel: 'تاخیر شدہ بلز',
+      notificationBannerTitle: 'اینڈرائیڈ بل ریمائنڈرز',
+      notificationPermissionMissing:
+        'بل کی آخری تاریخ سے پہلے اور تاخیر کے الرٹس پانے کے لیے نوٹیفکیشن کی اجازت دیں۔',
+      notificationPermissionReady:
+        'ریمائنڈرز فعال ہیں · تمام باقی بلز کے الرٹس شیڈول ہو چکے ہیں۔',
+      enableNotificationsBtn: 'اجازت دیں',
+      testNotificationBtn: 'ٹیسٹ الرٹ',
+      testNotificationSent: 'ٹیسٹ بل ریمائنڈر نوٹیفکیشن بھیج دیا گیا۔',
+      viewList: 'بلز کی فہرست',
+      viewCalendar: 'کیلنڈر',
+      viewHistory: 'ادائیگیوں کی ہسٹری',
+      addBillBtn: 'نیا بل شامل کریں',
+      searchPlaceholder: 'بل کا نام، کمپنی یا اکاؤنٹ نمبر تلاش کریں...',
+      filterAllCategories: 'تمام زمرے',
+      statusAll: 'سب',
+      statusOverdue: 'تاخیر شدہ',
+      statusUpcoming: 'باقی',
+      statusPaid: 'ادا شدہ',
+      markPaidBtn: 'ادا ہو گیا',
+      paidSuccessMsg: 'بل ادا شدہ نشان زد کر دیا گیا۔',
+      recurringGeneratedMsg: 'اگلے ماہ/دور کا بل خودکار تیار ہو گیا:',
+      editBtn: 'ترمیم',
+      deleteBtn: 'حذف کریں',
+      dueOnLabel: 'آخری تاریخ',
+      overdueByDays: 'دن تاخیر',
+      dueTodayLabel: 'آج آخری تاریخ',
+      dueInDays: 'دن باقی',
+      paidOnLabel: 'ادائیگی کی تاریخ',
+      accountRefLabel: 'صارف / ریفرنس نمبر',
+      providerLabel: 'کمپنی',
+      viewPhotoBtn: 'بل کی تصویر دیکھیں',
+      photoPreviewTitle: 'منسلک بل کی تصویر',
+      closeBtn: 'بند کریں',
+      noBillsTitle: 'ابھی کوئی بل شامل نہیں',
+      noBillsBody:
+        'بجلی، گیس، انٹرنیٹ، کرایہ یا اسکول فیس کے بلز منظم کرنے کے لیے "نیا بل شامل کریں" پر ٹیپ کریں۔',
+      noHistoryTitle: 'ابھی کوئی بل ادائیگی درج نہیں',
+      noHistoryBody: 'ادا شدہ بلز کی تاریخ اور تفصیل یہاں محفوظ رہے گی۔',
+      calendarTodayBtn: 'آج',
+      calendarSelectedDayTitle: 'اس تاریخ کے بلز:',
+      calendarNoBillsOnDay: 'اس تاریخ پر کوئی بل واجب الادا نہیں۔',
+      modalAddTitle: 'نیا بل ریمائنڈر',
+      modalEditTitle: 'بل میں ترمیم',
+      billNameLabel: 'بل کا نام',
+      billNamePlaceholder: 'مثلاً گھر کا بجلی کا بل',
+      categoryLabel: 'بل کا زمرہ',
+      providerFieldLabel: 'کمپنی / ادارہ (اختیاری)',
+      providerPlaceholder: 'مثلاً LESCO، K-Electric، SNGPL، PTCL',
+      amountFieldLabel: 'رقم (PKR)',
+      dueDateFieldLabel: 'آخری تاریخ',
+      accountNumberLabel: 'اکاؤنٹ / ریفرنس نمبر (اختیاری)',
+      accountNumberPlaceholder: 'مثلاً 14-11223-445566',
+      repeatLabel: 'دہرائی کی ترتیب',
+      customDaysLabel: 'کتنے دن بعد دہرائیں',
+      reminderTimingLabel: 'یاد دہانی کا وقت',
+      photoAttachLabel: 'بل کی تصویر (اختیاری)',
+      uploadPhotoBtn: 'تصویر منسلک کریں',
+      removePhotoBtn: 'ہٹائیں',
+      photoHint: 'صرف آپ کی ڈیوائس پر محفوظ رہے گی۔',
+      saveBillBtn: 'بل محفوظ کریں',
+      updateBillBtn: 'بل اپ ڈیٹ کریں',
+      cancelBtn: 'منسوخ کریں',
+      confirmDeleteTitle: 'بل حذف کریں؟',
+      confirmDeleteBody:
+        'یہ بل اور اس کا شیڈول شدہ ریمائنڈر مستقل طور پر حذف ہو جائے گا۔',
+      categories: {
+        electricity: 'بجلی',
+        gas: 'گیس',
+        water: 'پانی',
+        internet: 'انٹرنیٹ / وائی فائی',
+        mobile: 'موبائل پیکجز',
+        rent: 'گھر کا کرایہ',
+        school: 'اسکول فیس',
+        other: 'دیگر بل',
+      },
+      repeats: {
+        'one-time': 'صرف ایک بار',
+        monthly: 'ماہانہ',
+        custom: 'مخصوص دن',
+      },
+      timings: {
+        '1-day': '1 دن پہلے',
+        '3-days': '3 دن پہلے',
+        'on-due': 'آخری تاریخ پر',
       },
       errors: {
-        invalidNumber: 'تبدیلی کے لیے درست عدد درج کریں۔',
-        belowAbsoluteZero: 'درجہ حرارت مطلق صفر (-273.15 °C) سے کم نہیں ہو سکتا۔',
+        emptyName: 'براہ کرم بل کا نام درج کریں۔',
+        invalidAmount: 'براہ کرم صفر سے بڑی درست رقم درج کریں۔',
+        invalidDate: 'براہ کرم درست آخری تاریخ منتخب کریں۔',
+        invalidCustomDays: 'مخصوص دن کم از کم 1 ہونا ضروری ہے۔',
+        imageReadFailed: 'منتخب تصویر لوڈ نہیں ہو سکی۔',
       },
     },
   },

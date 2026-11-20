@@ -2,17 +2,24 @@ import { ToolDefinition } from '../types';
 
 export const TOOLS: ToolDefinition[] = [
   {
-    id: 'calculator',
-    category: 'utilities',
+    id: 'udhaar-manager',
+    category: 'finance',
     featured: true,
-    iconBg: 'bg-blue-600',
-    iconText: 'text-white',
+    iconBg: 'bg-cyan-500',
+    iconText: 'text-[#040D21]',
   },
   {
-    id: 'age-calculator',
-    category: 'utilities',
-    featured: false,
-    iconBg: 'bg-emerald-600',
+    id: 'bills-reminder',
+    category: 'finance',
+    featured: true,
+    iconBg: 'bg-yellow-400',
+    iconText: 'text-[#040D21]',
+  },
+  {
+    id: 'expense-tracker',
+    category: 'finance',
+    featured: true,
+    iconBg: 'bg-orange-500',
     iconText: 'text-white',
   },
   {
@@ -23,24 +30,10 @@ export const TOOLS: ToolDefinition[] = [
     iconText: 'text-slate-900',
   },
   {
-    id: 'todo-list',
-    category: 'productivity',
-    featured: true,
-    iconBg: 'bg-indigo-600',
-    iconText: 'text-white',
-  },
-  {
-    id: 'expense-tracker',
-    category: 'finance',
-    featured: true,
-    iconBg: 'bg-orange-500',
-    iconText: 'text-white',
-  },
-  {
-    id: 'unit-converter',
+    id: 'age-calculator',
     category: 'utilities',
     featured: false,
-    iconBg: 'bg-teal-600',
+    iconBg: 'bg-emerald-600',
     iconText: 'text-white',
   },
 ];

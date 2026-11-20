@@ -21,6 +21,21 @@ export interface AndroidPdfOpenResult {
   reason?: string;
 }
 
+export interface AndroidNotificationPermissionResult {
+  granted: boolean;
+  notificationsEnabled: boolean;
+  exactAlarmAllowed: boolean;
+  status: 'granted' | 'denied' | 'prompt';
+}
+
+export interface ScheduledBillReminderPayload {
+  id: string;
+  requestCode: number;
+  title: string;
+  body: string;
+  triggerAtMillis: number;
+}
+
 interface PdfExportPluginInterface {
   savePdfWithPicker(options: {
     filename: string;
@@ -32,9 +47,28 @@ interface PdfExportPluginInterface {
     title: string;
   }): Promise<AndroidPdfShareResult>;
   openPdfUri(options: { uri: string }): Promise<AndroidPdfOpenResult>;
+  shareText(options: {
+    title: string;
+    text: string;
+  }): Promise<{ shared: boolean }>;
+}
+
+interface BillReminderPluginInterface {
+  checkNotificationPermission(): Promise<AndroidNotificationPermissionResult>;
+  requestNotificationPermission(): Promise<AndroidNotificationPermissionResult>;
+  syncReminders(options: {
+    reminders: ScheduledBillReminderPayload[];
+  }): Promise<{ scheduledCount: number }>;
+  showImmediateNotification(options: {
+    requestCode: number;
+    title: string;
+    body: string;
+  }): Promise<{ shown: boolean }>;
+  cancelReminder(options: { requestCode: number }): Promise<{ cancelled: boolean }>;
 }
 
 const PdfExport = registerPlugin<PdfExportPluginInterface>('PdfExport');
+const BillReminder = registerPlugin<BillReminderPluginInterface>('BillReminder');
 
 export function isNativeAndroid(): boolean {
   try {
@@ -77,6 +111,135 @@ export async function openAndroidPdfUri(
   uri: string
 ): Promise<AndroidPdfOpenResult> {
   return PdfExport.openPdfUri({ uri });
+}
+
+export async function shareAndroidText(
+  text: string,
+  title = 'EasyDay'
+): Promise<boolean> {
+  if (isNativeAndroid()) {
+    try {
+      const res = await PdfExport.shareText({ title, text });
+      return Boolean(res?.shared);
+    } catch {
+      return false;
+    }
+  }
+  if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+    try {
+      await navigator.share({ title, text });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+export async function checkAndroidNotificationPermission(): Promise<AndroidNotificationPermissionResult> {
+  if (!isNativeAndroid()) {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      const perm = window.Notification.permission;
+      return {
+        granted: perm === 'granted',
+        notificationsEnabled: perm === 'granted',
+        exactAlarmAllowed: true,
+        status: perm === 'granted' ? 'granted' : perm === 'denied' ? 'denied' : 'prompt',
+      };
+    }
+    return {
+      granted: false,
+      notificationsEnabled: false,
+      exactAlarmAllowed: false,
+      status: 'denied',
+    };
+  }
+  return BillReminder.checkNotificationPermission();
+}
+
+export async function requestAndroidNotificationPermission(): Promise<AndroidNotificationPermissionResult> {
+  if (!isNativeAndroid()) {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      try {
+        const perm = await window.Notification.requestPermission();
+        return {
+          granted: perm === 'granted',
+          notificationsEnabled: perm === 'granted',
+          exactAlarmAllowed: true,
+          status: perm === 'granted' ? 'granted' : perm === 'denied' ? 'denied' : 'prompt',
+        };
+      } catch {
+        return {
+          granted: false,
+          notificationsEnabled: false,
+          exactAlarmAllowed: false,
+          status: 'denied',
+        };
+      }
+    }
+    return {
+      granted: false,
+      notificationsEnabled: false,
+      exactAlarmAllowed: false,
+      status: 'denied',
+    };
+  }
+  return BillReminder.requestNotificationPermission();
+}
+
+export async function syncAndroidBillReminders(
+  reminders: ScheduledBillReminderPayload[]
+): Promise<number> {
+  if (!isNativeAndroid()) return 0;
+  try {
+    const res = await BillReminder.syncReminders({ reminders });
+    return res?.scheduledCount ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+export async function showAndroidBillNotification(
+  requestCode: number,
+  title: string,
+  body: string
+): Promise<boolean> {
+  if (isNativeAndroid()) {
+    try {
+      const res = await BillReminder.showImmediateNotification({
+        requestCode,
+        title,
+        body,
+      });
+      return Boolean(res?.shown);
+    } catch {
+      return false;
+    }
+  }
+  if (
+    typeof window !== 'undefined' &&
+    'Notification' in window &&
+    window.Notification.permission === 'granted'
+  ) {
+    try {
+      new window.Notification(title, { body });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+export async function cancelAndroidBillReminder(
+  requestCode: number
+): Promise<void> {
+  if (!isNativeAndroid()) return;
+  try {
+    await BillReminder.cancelReminder({ requestCode });
+  } catch {
+    // Ignore
+  }
 }
 
 export async function syncAndroidStatusBar(

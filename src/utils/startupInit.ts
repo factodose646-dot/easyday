@@ -17,10 +17,10 @@ const STORAGE_THEME_KEY = 'easyday-theme';
 const STORAGE_RECENTS_KEY = 'easyday-recent-tools';
 
 const DEFAULT_RECENTS: ToolId[] = [
-  'calculator',
+  'udhaar-manager',
+  'bills-reminder',
+  'expense-tracker',
   'notes',
-  'todo-list',
-  'unit-converter',
 ];
 
 function preloadImage(src: string, timeoutMs = 4000): Promise<void> {

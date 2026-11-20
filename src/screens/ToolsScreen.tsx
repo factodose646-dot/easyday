@@ -97,7 +97,7 @@ export const ToolsScreen: React.FC<ToolsScreenProps> = ({ onSelectTool, t }) => 
         </div>
       </div>
 
-      {/* 6 Tool Cards Grid */}
+      {/* Active Tool Cards Grid */}
       {filteredTools.length === 0 ? (
         <div className="rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-[#1B315E] p-8 text-center space-y-3">
           <p className="text-sm text-slate-600 dark:text-slate-400">

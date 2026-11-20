@@ -5,11 +5,10 @@ import { TranslationBundle } from '../i18n/translations';
 import { Language, ToolId } from '../types';
 import { ToolIcon } from '../components/ToolIcon';
 import { AgeCalculatorTool } from '../components/tools/AgeCalculatorTool';
-import { CalculatorTool } from '../components/tools/CalculatorTool';
+import { BillsReminderTool } from '../components/tools/BillsReminderTool';
 import { ExpenseTrackerTool } from '../components/tools/ExpenseTrackerTool';
 import { NotesTool } from '../components/tools/NotesTool';
-import { TodoListTool } from '../components/tools/TodoListTool';
-import { UnitConverterTool } from '../components/tools/UnitConverterTool';
+import { UdhaarManagerTool } from '../components/tools/UdhaarManagerTool';
 
 interface ToolDetailScreenProps {
   toolId: ToolId;
@@ -28,7 +27,7 @@ export const ToolDetailScreen: React.FC<ToolDetailScreenProps> = ({
   const toolT = TOOL_TRANSLATIONS[language];
 
   return (
-    <div className="space-y-5 max-w-3xl">
+    <div className="space-y-5 max-w-4xl">
       {/* Compact Header with Back Button & Tool Identity */}
       <header className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
@@ -58,19 +57,18 @@ export const ToolDetailScreen: React.FC<ToolDetailScreenProps> = ({
 
       {/* Active Tool Workspace */}
       <div>
-        {toolId === 'calculator' && <CalculatorTool t={toolT.calculator} />}
-        {toolId === 'age-calculator' && (
-          <AgeCalculatorTool language={language} t={toolT.age} />
+        {toolId === 'udhaar-manager' && (
+          <UdhaarManagerTool language={language} t={toolT.udhaar} />
         )}
-        {toolId === 'notes' && <NotesTool language={language} t={toolT.notes} />}
-        {toolId === 'todo-list' && (
-          <TodoListTool language={language} t={toolT.todo} />
+        {toolId === 'bills-reminder' && (
+          <BillsReminderTool language={language} t={toolT.bills} />
         )}
         {toolId === 'expense-tracker' && (
           <ExpenseTrackerTool language={language} t={toolT.expense} />
         )}
-        {toolId === 'unit-converter' && (
-          <UnitConverterTool t={toolT.converter} />
+        {toolId === 'notes' && <NotesTool language={language} t={toolT.notes} />}
+        {toolId === 'age-calculator' && (
+          <AgeCalculatorTool language={language} t={toolT.age} />
         )}
       </div>
     </div>
