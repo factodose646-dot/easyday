@@ -95,6 +95,30 @@ jobs:
           EASYDAY_KEY_PASSWORD: ${{ secrets.EASYDAY_KEY_PASSWORD }}
         run: |
           set -euo pipefail
+          mkdir -p "${HOME}/.gradle/init.d"
+          cat << 'EOF' > "${HOME}/.gradle/init.d/maven-mirrors.gradle"
+          allprojects {
+              buildscript {
+                  repositories {
+                      all { repo ->
+                          if (repo.metaClass.respondsTo(repo, 'getUrl') && repo.url?.toString()?.contains('repo.maven.apache.org')) {
+                              repo.url = uri('https://maven-central.storage-download.googleapis.com/maven2/')
+                          }
+                      }
+                      maven { url = 'https://repo1.maven.org/maven2/' }
+                  }
+              }
+              repositories {
+                  all { repo ->
+                      if (repo.metaClass.respondsTo(repo, 'getUrl') && repo.url?.toString()?.contains('repo.maven.apache.org')) {
+                          repo.url = uri('https://maven-central.storage-download.googleapis.com/maven2/')
+                      }
+                  }
+                  maven { url = 'https://repo1.maven.org/maven2/' }
+              }
+          }
+          EOF
+
           mkdir -p dist-apk
           cd android
           chmod +x ./gradlew
