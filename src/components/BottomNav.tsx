@@ -26,7 +26,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   return (
     <nav
       aria-label="Primary Bottom Navigation"
-      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-[#0F172A]/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 pb-safe"
+      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-[#07122B]/95 backdrop-blur-md border-t border-slate-200/90 dark:border-[#1B315E] pb-safe"
     >
       <div className="grid grid-cols-3 min-h-[4rem] items-center max-w-lg mx-auto px-1 pt-1">
         {NAV_ITEMS.map(({ id, Icon }) => {
@@ -37,16 +37,16 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               type="button"
               onClick={() => onSelectTab(id)}
               aria-current={isActive ? 'page' : undefined}
-              className={`relative flex flex-col items-center justify-center min-h-[44px] min-w-[44px] py-1.5 rounded-xl transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
+              className={`relative flex flex-col items-center justify-center min-h-[44px] min-w-[44px] py-1.5 rounded-xl transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
                 isActive
-                  ? 'text-blue-600 dark:text-sky-400'
+                  ? 'text-cyan-700 dark:text-cyan-300'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <span
                 className={`flex items-center justify-center w-12 h-7 rounded-full transition-colors duration-150 ${
                   isActive
-                    ? 'bg-blue-600/12 dark:bg-sky-400/15'
+                    ? 'bg-cyan-500/15 dark:bg-cyan-400/20'
                     : 'bg-transparent'
                 }`}
               >
@@ -54,7 +54,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               </span>
               <span
                 className={`text-[11px] leading-tight mt-0.5 whitespace-nowrap truncate max-w-full px-1 ${
-                  isActive ? 'font-semibold' : 'font-medium'
+                  isActive ? 'font-bold' : 'font-medium'
                 }`}
               >
                 {t.nav[id]}

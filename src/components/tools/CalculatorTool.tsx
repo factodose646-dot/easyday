@@ -172,7 +172,14 @@ export const CalculatorTool: React.FC<CalculatorToolProps> = ({ t }) => {
   // Keyboard support for desktop/hardware keyboards
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.target instanceof HTMLSelectElement
+      ) {
+        return;
+      }
+      if (e.key === 'Enter' && e.target instanceof HTMLButtonElement) {
         return;
       }
       if (e.key >= '0' && e.key <= '9') {
@@ -230,7 +237,7 @@ export const CalculatorTool: React.FC<CalculatorToolProps> = ({ t }) => {
         <button
           type="button"
           onClick={() => setShowHistory((v) => !v)}
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 text-xs font-semibold text-blue-600 dark:text-sky-400 hover:bg-slate-50 dark:hover:bg-slate-800 min-h-[40px] transition-colors"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 text-xs font-semibold text-cyan-700 dark:text-cyan-300 hover:bg-slate-50 dark:hover:bg-[#102247] min-h-[40px] transition-colors"
         >
           <History className="w-4 h-4" />
           <span>{showHistory ? t.hideHistory : t.showHistory}</span>
@@ -240,7 +247,7 @@ export const CalculatorTool: React.FC<CalculatorToolProps> = ({ t }) => {
       {/* Display Screen (kept LTR for mathematical clarity even in Urdu RTL) */}
       <div
         dir="ltr"
-        className="rounded-3xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 p-5 sm:p-6 text-right space-y-2"
+        className="rounded-3xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 p-5 sm:p-6 text-right space-y-2 shadow-sm dark:shadow-cyan-950/20"
       >
         <div className="min-h-[20px] text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-mono tabular-nums truncate">
           {lastResult ? `${lastResult} =` : '\u00A0'}
@@ -259,7 +266,7 @@ export const CalculatorTool: React.FC<CalculatorToolProps> = ({ t }) => {
               {errorMsg}
             </p>
           ) : livePreview ? (
-            <p className="text-sm font-semibold text-teal-700 dark:text-teal-400 font-mono tabular-nums">
+            <p className="text-sm font-semibold text-cyan-700 dark:text-yellow-400 font-mono tabular-nums">
               = {livePreview}
             </p>
           ) : (
@@ -270,7 +277,7 @@ export const CalculatorTool: React.FC<CalculatorToolProps> = ({ t }) => {
 
       {/* Conditional View: History Panel or Keypad */}
       {showHistory ? (
-        <section className="rounded-3xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 p-5 space-y-4">
+        <section className="rounded-3xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 p-5 space-y-4">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-base font-bold text-slate-900 dark:text-white">
@@ -297,19 +304,19 @@ export const CalculatorTool: React.FC<CalculatorToolProps> = ({ t }) => {
               {t.noHistory}
             </p>
           ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[340px] overflow-y-auto">
+            <div className="divide-y divide-slate-100 dark:divide-cyan-900/40 max-h-[340px] overflow-y-auto">
               {history.map((item) => (
                 <button
                   key={item.id}
                   type="button"
                   onClick={() => handleReuseHistory(item)}
                   dir="ltr"
-                  className="w-full py-3 px-2 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl text-right transition-colors min-h-[52px]"
+                  className="w-full py-3 px-2 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-[#102247] rounded-xl text-right transition-colors min-h-[52px]"
                 >
                   <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-mono truncate">
                     {item.expression}
                   </span>
-                  <span className="text-sm sm:text-base font-bold text-blue-600 dark:text-sky-400 font-mono tabular-nums shrink-0">
+                  <span className="text-sm sm:text-base font-bold text-cyan-700 dark:text-cyan-300 font-mono tabular-nums shrink-0">
                     = {item.result}
                   </span>
                 </button>
@@ -328,7 +335,7 @@ export const CalculatorTool: React.FC<CalculatorToolProps> = ({ t }) => {
           <button
             type="button"
             onClick={handleClearAll}
-            className="min-h-[56px] rounded-2xl bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 font-bold text-base hover:bg-red-100 dark:hover:bg-red-950/70 active:scale-[0.98] transition-all"
+            className="min-h-[56px] rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200/70 dark:border-red-900/40 text-red-700 dark:text-red-300 font-bold text-base hover:bg-red-100 dark:hover:bg-red-950/70 active:scale-[0.98] transition-all"
           >
             C
           </button>
@@ -336,21 +343,21 @@ export const CalculatorTool: React.FC<CalculatorToolProps> = ({ t }) => {
             type="button"
             onClick={handleBackspace}
             aria-label="Delete last digit"
-            className="min-h-[56px] rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-[0.98] transition-all"
+            className="min-h-[56px] rounded-2xl bg-slate-100 dark:bg-[#0D1E42] border border-slate-200 dark:border-cyan-900/50 text-slate-800 dark:text-slate-100 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-[#132959] active:scale-[0.98] transition-all"
           >
             <Delete className="w-5 h-5" />
           </button>
           <button
             type="button"
             onClick={appendPercent}
-            className="min-h-[56px] rounded-2xl bg-slate-100 dark:bg-slate-800 text-teal-700 dark:text-teal-300 font-bold text-lg hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-[0.98] transition-all"
+            className="min-h-[56px] rounded-2xl bg-slate-100 dark:bg-[#0D1E42] border border-slate-200 dark:border-cyan-900/50 text-amber-600 dark:text-yellow-400 font-bold text-lg hover:bg-slate-200 dark:hover:bg-[#132959] active:scale-[0.98] transition-all"
           >
             %
           </button>
           <button
             type="button"
             onClick={() => appendOperator('÷')}
-            className="min-h-[56px] rounded-2xl bg-blue-600/12 dark:bg-sky-500/20 text-blue-700 dark:text-sky-300 font-bold text-xl hover:bg-blue-600/20 active:scale-[0.98] transition-all"
+            className="min-h-[56px] rounded-2xl bg-cyan-500/12 dark:bg-cyan-500/15 border border-cyan-500/20 dark:border-cyan-400/30 text-cyan-700 dark:text-cyan-300 font-bold text-xl hover:bg-cyan-500/20 active:scale-[0.98] transition-all"
           >
             ÷
           </button>
@@ -361,7 +368,7 @@ export const CalculatorTool: React.FC<CalculatorToolProps> = ({ t }) => {
               key={d}
               type="button"
               onClick={() => appendDigit(d)}
-              className="min-h-[56px] rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold text-xl font-mono hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-[0.98] transition-all"
+              className="min-h-[56px] rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 text-slate-900 dark:text-white font-bold text-xl font-mono hover:bg-slate-50 dark:hover:bg-[#102247] active:scale-[0.98] transition-all"
             >
               {d}
             </button>
@@ -369,7 +376,7 @@ export const CalculatorTool: React.FC<CalculatorToolProps> = ({ t }) => {
           <button
             type="button"
             onClick={() => appendOperator('×')}
-            className="min-h-[56px] rounded-2xl bg-blue-600/12 dark:bg-sky-500/20 text-blue-700 dark:text-sky-300 font-bold text-xl hover:bg-blue-600/20 active:scale-[0.98] transition-all"
+            className="min-h-[56px] rounded-2xl bg-cyan-500/12 dark:bg-cyan-500/15 border border-cyan-500/20 dark:border-cyan-400/30 text-cyan-700 dark:text-cyan-300 font-bold text-xl hover:bg-cyan-500/20 active:scale-[0.98] transition-all"
           >
             ×
           </button>
@@ -380,7 +387,7 @@ export const CalculatorTool: React.FC<CalculatorToolProps> = ({ t }) => {
               key={d}
               type="button"
               onClick={() => appendDigit(d)}
-              className="min-h-[56px] rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold text-xl font-mono hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-[0.98] transition-all"
+              className="min-h-[56px] rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 text-slate-900 dark:text-white font-bold text-xl font-mono hover:bg-slate-50 dark:hover:bg-[#102247] active:scale-[0.98] transition-all"
             >
               {d}
             </button>
@@ -388,7 +395,7 @@ export const CalculatorTool: React.FC<CalculatorToolProps> = ({ t }) => {
           <button
             type="button"
             onClick={() => appendOperator('-')}
-            className="min-h-[56px] rounded-2xl bg-blue-600/12 dark:bg-sky-500/20 text-blue-700 dark:text-sky-300 font-bold text-xl hover:bg-blue-600/20 active:scale-[0.98] transition-all"
+            className="min-h-[56px] rounded-2xl bg-cyan-500/12 dark:bg-cyan-500/15 border border-cyan-500/20 dark:border-cyan-400/30 text-cyan-700 dark:text-cyan-300 font-bold text-xl hover:bg-cyan-500/20 active:scale-[0.98] transition-all"
           >
             −
           </button>
@@ -399,7 +406,7 @@ export const CalculatorTool: React.FC<CalculatorToolProps> = ({ t }) => {
               key={d}
               type="button"
               onClick={() => appendDigit(d)}
-              className="min-h-[56px] rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold text-xl font-mono hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-[0.98] transition-all"
+              className="min-h-[56px] rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 text-slate-900 dark:text-white font-bold text-xl font-mono hover:bg-slate-50 dark:hover:bg-[#102247] active:scale-[0.98] transition-all"
             >
               {d}
             </button>
@@ -407,7 +414,7 @@ export const CalculatorTool: React.FC<CalculatorToolProps> = ({ t }) => {
           <button
             type="button"
             onClick={() => appendOperator('+')}
-            className="min-h-[56px] rounded-2xl bg-blue-600/12 dark:bg-sky-500/20 text-blue-700 dark:text-sky-300 font-bold text-xl hover:bg-blue-600/20 active:scale-[0.98] transition-all"
+            className="min-h-[56px] rounded-2xl bg-cyan-500/12 dark:bg-cyan-500/15 border border-cyan-500/20 dark:border-cyan-400/30 text-cyan-700 dark:text-cyan-300 font-bold text-xl hover:bg-cyan-500/20 active:scale-[0.98] transition-all"
           >
             +
           </button>
@@ -416,28 +423,28 @@ export const CalculatorTool: React.FC<CalculatorToolProps> = ({ t }) => {
           <button
             type="button"
             onClick={() => appendDigit('00')}
-            className="min-h-[56px] rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold text-lg font-mono hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-[0.98] transition-all"
+            className="min-h-[56px] rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 text-slate-900 dark:text-white font-bold text-lg font-mono hover:bg-slate-50 dark:hover:bg-[#102247] active:scale-[0.98] transition-all"
           >
             00
           </button>
           <button
             type="button"
             onClick={() => appendDigit('0')}
-            className="min-h-[56px] rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold text-xl font-mono hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-[0.98] transition-all"
+            className="min-h-[56px] rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 text-slate-900 dark:text-white font-bold text-xl font-mono hover:bg-slate-50 dark:hover:bg-[#102247] active:scale-[0.98] transition-all"
           >
             0
           </button>
           <button
             type="button"
             onClick={appendDecimal}
-            className="min-h-[56px] rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold text-2xl font-mono hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-[0.98] transition-all"
+            className="min-h-[56px] rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 text-slate-900 dark:text-white font-bold text-2xl font-mono hover:bg-slate-50 dark:hover:bg-[#102247] active:scale-[0.98] transition-all"
           >
             .
           </button>
           <button
             type="button"
             onClick={handleEquals}
-            className="min-h-[56px] rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-2xl shadow-sm active:scale-[0.98] transition-all"
+            className="min-h-[56px] rounded-2xl bg-gradient-to-br from-cyan-400 to-yellow-400 hover:brightness-105 text-[#040D21] font-extrabold text-2xl shadow-md shadow-cyan-500/20 active:scale-[0.98] transition-all"
           >
             =
           </button>

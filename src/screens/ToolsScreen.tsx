@@ -47,7 +47,7 @@ export const ToolsScreen: React.FC<ToolsScreenProps> = ({ onSelectTool, t }) => 
       <div className="space-y-3">
         <div className="relative">
           <Search
-            className="w-5 h-5 text-slate-400 dark:text-slate-500 absolute top-1/2 -translate-y-1/2 start-4 pointer-events-none"
+            className="w-5 h-5 text-slate-400 dark:text-cyan-400/70 absolute top-1/2 -translate-y-1/2 start-4 pointer-events-none"
             aria-hidden="true"
           />
           <input
@@ -56,7 +56,7 @@ export const ToolsScreen: React.FC<ToolsScreenProps> = ({ onSelectTool, t }) => 
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t.toolsDirectory.searchPlaceholder}
             aria-label={t.toolsDirectory.searchPlaceholder}
-            className="w-full h-12 ps-12 pe-12 rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+            className="w-full h-12 ps-12 pe-12 rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-[#1B315E] text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent"
           />
           {query && (
             <button
@@ -84,10 +84,10 @@ export const ToolsScreen: React.FC<ToolsScreenProps> = ({ onSelectTool, t }) => 
                 role="tab"
                 aria-selected={active}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap shrink-0 min-h-[40px] transition-colors ${
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap shrink-0 min-h-[40px] transition-colors ${
                   active
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white dark:bg-[#131C31] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    ? 'bg-cyan-500 text-[#040D21]'
+                    : 'bg-white dark:bg-[#0B1836] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-[#1B315E] hover:bg-slate-50 dark:hover:bg-[#11244D]'
                 }`}
               >
                 {t.toolsDirectory.categories[category]}
@@ -99,7 +99,7 @@ export const ToolsScreen: React.FC<ToolsScreenProps> = ({ onSelectTool, t }) => 
 
       {/* 6 Tool Cards Grid */}
       {filteredTools.length === 0 ? (
-        <div className="rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 p-8 text-center space-y-3">
+        <div className="rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-[#1B315E] p-8 text-center space-y-3">
           <p className="text-sm text-slate-600 dark:text-slate-400">
             {t.dashboard.noToolsFound}
           </p>
@@ -109,7 +109,7 @@ export const ToolsScreen: React.FC<ToolsScreenProps> = ({ onSelectTool, t }) => 
               setQuery('');
               setSelectedCategory('all');
             }}
-            className="px-4 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-colors min-h-[44px]"
+            className="px-4 py-2.5 rounded-xl bg-cyan-500 text-[#040D21] text-xs font-bold hover:bg-cyan-400 transition-colors min-h-[44px]"
           >
             {t.dashboard.resetSearch}
           </button>
@@ -123,17 +123,17 @@ export const ToolsScreen: React.FC<ToolsScreenProps> = ({ onSelectTool, t }) => 
                 key={tool.id}
                 type="button"
                 onClick={() => onSelectTool(tool.id)}
-                className="group flex flex-col justify-between p-5 rounded-3xl bg-white dark:bg-[#131C31] border border-slate-200/90 dark:border-slate-800 hover:border-blue-500/70 dark:hover:border-sky-400/70 text-start transition-colors active:scale-[0.99] min-h-[156px]"
+                className="group flex flex-col justify-between p-5 rounded-3xl bg-white dark:bg-[#0B1836] border border-slate-200/90 dark:border-[#1B315E] hover:border-cyan-500 dark:hover:border-cyan-400/80 text-start transition-colors active:scale-[0.99] min-h-[156px]"
               >
                 <div className="flex items-start justify-between gap-3 w-full">
                   <ToolIcon toolId={tool.id} size="md" />
-                  <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
+                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-400">
                     {t.toolsDirectory.categories[tool.category]}
                   </span>
                 </div>
 
                 <div className="mt-4 space-y-1">
-                  <h2 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-sky-400 transition-colors">
+                  <h2 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition-colors">
                     {copy.name}
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
@@ -141,11 +141,11 @@ export const ToolsScreen: React.FC<ToolsScreenProps> = ({ onSelectTool, t }) => 
                   </p>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between w-full text-xs">
-                  <span className="font-medium text-teal-700 dark:text-teal-400">
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-[#1B315E] flex items-center justify-between w-full text-xs">
+                  <span className="font-semibold text-amber-600 dark:text-yellow-300">
                     {t.toolsDirectory.phaseLabel}
                   </span>
-                  <span className="inline-flex items-center gap-1 font-semibold text-blue-600 dark:text-sky-400">
+                  <span className="inline-flex items-center gap-1 font-bold text-cyan-700 dark:text-cyan-300">
                     <span>{t.toolsDirectory.openTool}</span>
                     <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
                   </span>

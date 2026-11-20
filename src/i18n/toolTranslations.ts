@@ -109,12 +109,40 @@ export interface ToolTranslationBundle {
     reportRangeLabel: string;
     reportPreviewTitle: string;
     transactionsCountLabel: string;
+    pdfFilenameLabel: string;
     downloadPdfBtn: string;
+    choosePathAndSaveBtn: string;
     sharePdfBtn: string;
+    openPdfBtn: string;
     generatingPdf: string;
+    exportPathHint: string;
     exportSuccess: string;
+    exportSavedLocation: string;
+    exportCancelled: string;
+    noPdfViewerFound: string;
     exportError: string;
     emptyPeriodNotice: string;
+    dashboardTitle: string;
+    dashboardSubtitle: string;
+    savingsRateLabel: string;
+    topCategoryLabel: string;
+    avgDailySpendLabel: string;
+    cashflowTrendTitle: string;
+    categoryBreakdownTitle: string;
+    noCategorySpending: string;
+    prevPeriodAria: string;
+    nextPeriodAria: string;
+    previewPdfBtn: string;
+    previewModalTitle: string;
+    previewModalSubtitle: string;
+    pageCounterLabel: string;
+    ofWord: string;
+    zoomFitLabel: string;
+    zoomActualLabel: string;
+    prevPageAria: string;
+    nextPageAria: string;
+    shareCancelled: string;
+    backBtn: string;
     pdfLabels: {
       reportTitle: string;
       subtitle: string;
@@ -281,13 +309,42 @@ export const TOOL_TRANSLATIONS: Record<Language, ToolTranslationBundle> = {
       reportRangeLabel: 'Date Range',
       reportPreviewTitle: 'Report Summary Preview',
       transactionsCountLabel: 'Transactions',
+      pdfFilenameLabel: 'PDF File Name',
       downloadPdfBtn: 'Download PDF',
+      choosePathAndSaveBtn: 'Choose Folder & Save PDF',
       sharePdfBtn: 'Share PDF',
+      openPdfBtn: 'Open PDF',
       generatingPdf: 'Generating PDF...',
+      exportPathHint:
+        'Tap "Choose Folder & Save PDF" to pick any folder on your phone (Downloads, Documents, SD Card, etc.).',
       exportSuccess: 'PDF saved:',
+      exportSavedLocation: 'Saved to:',
+      exportCancelled: 'Save cancelled — no folder was selected.',
+      noPdfViewerFound: 'No PDF viewer app found, or use File Manager at the saved path.',
       exportError: 'Could not generate PDF report. Please try again.',
       emptyPeriodNotice:
-        'No transactions recorded in this period. Downloading will create a zero-summary PDF report.',
+        'No transactions recorded in this period. Exporting will create a zero-summary PDF report.',
+      dashboardTitle: 'Reports & Analytics Dashboard',
+      dashboardSubtitle: 'Interactive Daily, Weekly & Monthly financial insights',
+      savingsRateLabel: 'Savings Rate',
+      topCategoryLabel: 'Top Spend',
+      avgDailySpendLabel: 'Daily Avg Spend',
+      cashflowTrendTitle: 'Cashflow Breakdown',
+      categoryBreakdownTitle: 'Expense Categories',
+      noCategorySpending: 'No expenses recorded in this period yet.',
+      prevPeriodAria: 'Previous period',
+      nextPeriodAria: 'Next period',
+      previewPdfBtn: 'Preview PDF',
+      previewModalTitle: 'PDF Report Preview',
+      previewModalSubtitle: 'Inspect your formatted report before saving to a folder or sharing.',
+      pageCounterLabel: 'Page',
+      ofWord: 'of',
+      zoomFitLabel: 'Fit Width',
+      zoomActualLabel: 'Zoom 140%',
+      prevPageAria: 'Previous page',
+      nextPageAria: 'Next page',
+      shareCancelled: 'Share cancelled.',
+      backBtn: 'Back',
       pdfLabels: {
         reportTitle: 'EasyDay — Expense Report',
         subtitle: 'Everything Made Easy · ZAIDI INTERACTIVE',
@@ -490,13 +547,42 @@ export const TOOL_TRANSLATIONS: Record<Language, ToolTranslationBundle> = {
       reportRangeLabel: 'تاریخ کی حد',
       reportPreviewTitle: 'رپورٹ کا پیشگی خلاصہ',
       transactionsCountLabel: 'اندراجات',
+      pdfFilenameLabel: 'فائل کا نام',
       downloadPdfBtn: 'پی ڈی ایف ڈاؤن لوڈ کریں',
+      choosePathAndSaveBtn: 'فولڈر منتخب کر کے محفوظ کریں',
       sharePdfBtn: 'رپورٹ شیئر کریں',
+      openPdfBtn: 'پی ڈی ایف کھولیں',
       generatingPdf: 'پی ڈی ایف تیار ہو رہی ہے...',
+      exportPathHint:
+        'فون کے کسی بھی فولڈر (Downloads، Documents، SD Card وغیرہ) میں محفوظ کرنے کے لیے بٹن دبائیں۔',
       exportSuccess: 'پی ڈی ایف تیار ہو گئی:',
+      exportSavedLocation: 'محفوظ شدہ جگہ:',
+      exportCancelled: 'محفوظ کرنا منسوخ کر دیا گیا — کوئی فولڈر منتخب نہیں کیا گیا۔',
+      noPdfViewerFound: 'فون میں کوئی پی ڈی ایف ریڈر ایپ نہیں ملی، فائل مینیجر سے کھولیں۔',
       exportError: 'پی ڈی ایف رپورٹ تیار نہیں ہو سکی۔ براہ کرم دوبارہ کوشش کریں۔',
       emptyPeriodNotice:
-        'اس مدت میں کوئی مالی اندراج موجود نہیں ہے۔ ڈاؤن لوڈ کرنے پر صفر خلاصہ رپورٹ تیار ہوگی۔',
+        'اس مدت میں کوئی مالی اندراج موجود نہیں ہے۔ محفوظ کرنے پر صفر خلاصہ رپورٹ تیار ہوگی۔',
+      dashboardTitle: 'ہفتہ وار اور ماہانہ رپورٹس ڈیش بورڈ',
+      dashboardSubtitle: 'روزانہ، ہفتہ وار اور ماہانہ مالی کارکردگی کا جدید تجزیہ',
+      savingsRateLabel: 'بچت کی شرح',
+      topCategoryLabel: 'سب سے زیادہ خرچ',
+      avgDailySpendLabel: 'یومیہ اوسط خرچ',
+      cashflowTrendTitle: 'آمدنی بمقابلہ اخراجات کا چارٹ',
+      categoryBreakdownTitle: 'زمرہ وار اخراجات',
+      noCategorySpending: 'اس مدت میں ابھی کوئی خرچ درج نہیں ہوا۔',
+      prevPeriodAria: 'پچھلی مدت',
+      nextPeriodAria: 'اگلی مدت',
+      previewPdfBtn: 'پی ڈی ایف پیش نظارہ',
+      previewModalTitle: 'پی ڈی ایف رپورٹ کا پیش نظارہ',
+      previewModalSubtitle: 'فولڈر میں محفوظ کرنے یا شیئر کرنے سے پہلے رپورٹ کی مکمل جانچ کریں۔',
+      pageCounterLabel: 'صفحہ',
+      ofWord: 'از',
+      zoomFitLabel: 'مکمل فٹ',
+      zoomActualLabel: 'بڑا منظر',
+      prevPageAria: 'پچھلا صفحہ',
+      nextPageAria: 'اگلا صفحہ',
+      shareCancelled: 'شیئرنگ منسوخ کر دی گئی۔',
+      backBtn: 'واپس',
       pdfLabels: {
         reportTitle: 'EasyDay — اخراجات اور آمدنی کی رپورٹ',
         subtitle: 'Everything Made Easy · ZAIDI INTERACTIVE',

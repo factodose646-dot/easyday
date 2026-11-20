@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Check, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { ToolTranslationBundle } from '../../i18n/toolTranslations';
 import { Language } from '../../types';
@@ -19,10 +19,9 @@ export const TodoListTool: React.FC<TodoListToolProps> = ({ language, t }) => {
 
   const [confirmClearOpen, setConfirmClearOpen] = useState<boolean>(false);
 
-  const persistTodos = useCallback((next: TodoItem[]) => {
-    setTodos(next);
-    todosStorage.save(next);
-  }, []);
+  useEffect(() => {
+    todosStorage.save(todos);
+  }, [todos]);
 
   const formatDate = useCallback(
     (ts: number) => {
@@ -52,16 +51,17 @@ export const TodoListTool: React.FC<TodoListToolProps> = ({ language, t }) => {
       completed: false,
       createdAt: Date.now(),
     };
-    persistTodos([item, ...todos]);
+    setTodos((prev) => [item, ...prev]);
     setNewTaskText('');
     setInputError(null);
   };
 
   const handleToggleComplete = (id: string) => {
-    const next = todos.map((item) =>
-      item.id === id ? { ...item, completed: !item.completed } : item
+    setTodos((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, completed: !item.completed } : item
+      )
     );
-    persistTodos(next);
   };
 
   const handleStartEdit = (item: TodoItem) => {
@@ -72,24 +72,30 @@ export const TodoListTool: React.FC<TodoListToolProps> = ({ language, t }) => {
   const handleSaveEdit = () => {
     if (!editingId) return;
     const trimmed = editingText.trim();
-    if (!trimmed) return;
-    const next = todos.map((item) =>
-      item.id === editingId ? { ...item, text: trimmed } : item
+    if (!trimmed) {
+      setEditingId(null);
+      setEditingText('');
+      return;
+    }
+    const targetId = editingId;
+    setTodos((prev) =>
+      prev.map((item) =>
+        item.id === targetId ? { ...item, text: trimmed } : item
+      )
     );
-    persistTodos(next);
     setEditingId(null);
     setEditingText('');
   };
 
   const handleDeleteTask = (id: string) => {
-    persistTodos(todos.filter((item) => item.id !== id));
+    setTodos((prev) => prev.filter((item) => item.id !== id));
     if (editingId === id) {
       setEditingId(null);
     }
   };
 
   const handleConfirmClearCompleted = () => {
-    persistTodos(todos.filter((item) => !item.completed));
+    setTodos((prev) => prev.filter((item) => !item.completed));
     setConfirmClearOpen(false);
   };
 
@@ -113,7 +119,7 @@ export const TodoListTool: React.FC<TodoListToolProps> = ({ language, t }) => {
     return (
       <div
         key={item.id}
-        className="rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 p-3.5 sm:p-4 flex items-start gap-3"
+        className="rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 p-3.5 sm:p-4 flex items-start gap-3"
       >
         <button
           type="button"
@@ -122,8 +128,8 @@ export const TodoListTool: React.FC<TodoListToolProps> = ({ language, t }) => {
           aria-pressed={item.completed}
           className={`w-7 h-7 mt-1 rounded-lg border-2 flex items-center justify-center shrink-0 transition-colors ${
             item.completed
-              ? 'bg-teal-600 border-teal-600 text-white'
-              : 'border-slate-300 dark:border-slate-600 hover:border-blue-600'
+              ? 'bg-cyan-500 border-cyan-500 text-[#040D21]'
+              : 'border-slate-300 dark:border-cyan-800 hover:border-cyan-400'
           }`}
         >
           {item.completed && <Check className="w-4 h-4" strokeWidth={2.8} />}
@@ -141,20 +147,20 @@ export const TodoListTool: React.FC<TodoListToolProps> = ({ language, t }) => {
                   if (e.key === 'Escape') setEditingId(null);
                 }}
                 autoFocus
-                className="flex-1 h-10 px-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-blue-500 text-sm text-slate-900 dark:text-white focus:outline-none"
+                className="flex-1 h-10 px-3 rounded-xl bg-slate-50 dark:bg-[#061026] border border-cyan-500 text-sm text-slate-900 dark:text-white focus:outline-none"
               />
               <div className="flex gap-1.5">
                 <button
                   type="button"
                   onClick={handleSaveEdit}
-                  className="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-semibold min-h-[40px]"
+                  className="px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-[#040D21] text-xs font-bold min-h-[40px]"
                 >
                   {t.saveBtn}
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditingId(null)}
-                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold min-h-[40px]"
+                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-[#0D1E42] text-slate-700 dark:text-slate-200 text-xs font-semibold min-h-[40px]"
                 >
                   {t.cancelBtn}
                 </button>
@@ -184,7 +190,7 @@ export const TodoListTool: React.FC<TodoListToolProps> = ({ language, t }) => {
               type="button"
               onClick={() => handleStartEdit(item)}
               aria-label={t.editBtn}
-              className="min-w-[38px] min-h-[38px] flex items-center justify-center rounded-xl text-blue-600 dark:text-sky-400 hover:bg-blue-50 dark:hover:bg-slate-800"
+              className="min-w-[38px] min-h-[38px] flex items-center justify-center rounded-xl text-cyan-700 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-[#102247]"
             >
               <Pencil className="w-4 h-4" />
             </button>
@@ -205,7 +211,7 @@ export const TodoListTool: React.FC<TodoListToolProps> = ({ language, t }) => {
   return (
     <div className="space-y-5">
       {/* Daily Progress Card */}
-      <section className="rounded-3xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 p-5 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 p-5 space-y-3">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-bold text-slate-900 dark:text-white">
@@ -215,13 +221,13 @@ export const TodoListTool: React.FC<TodoListToolProps> = ({ language, t }) => {
               {completedTasks.length} / {todos.length} {t.tasksCompletedOf}
             </p>
           </div>
-          <span className="text-xl font-extrabold text-blue-600 dark:text-sky-400 tabular-nums">
+          <span className="text-xl font-extrabold text-cyan-700 dark:text-yellow-400 tabular-nums">
             {progressPercent}%
           </span>
         </div>
-        <div className="h-2.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+        <div className="h-2.5 w-full rounded-full bg-slate-100 dark:bg-[#061026] overflow-hidden">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-[#0B6FF2] to-[#0D9488] transition-[width] duration-200"
+            className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-yellow-400 transition-[width] duration-200"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -239,11 +245,11 @@ export const TodoListTool: React.FC<TodoListToolProps> = ({ language, t }) => {
             }}
             placeholder={t.inputPlaceholder}
             aria-label={t.inputPlaceholder}
-            className="flex-1 h-12 px-4 rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="flex-1 h-12 px-4 rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
           />
           <button
             type="submit"
-            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold min-h-[48px] shrink-0 transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-[#040D21] text-sm font-bold min-h-[48px] shrink-0 transition-colors shadow-sm shadow-cyan-500/20"
           >
             <Plus className="w-4 h-4" />
             <span>{t.addBtn}</span>
@@ -261,11 +267,11 @@ export const TodoListTool: React.FC<TodoListToolProps> = ({ language, t }) => {
 
       {/* Pending Tasks Section */}
       <section className="space-y-2.5">
-        <h2 className="text-sm font-bold text-slate-700 dark:text-slate-300 px-1">
+        <h2 className="text-sm font-bold text-slate-700 dark:text-cyan-300 px-1">
           {t.pendingTitle} ({pendingTasks.length})
         </h2>
         {pendingTasks.length === 0 ? (
-          <div className="rounded-2xl bg-white dark:bg-[#131C31] border border-dashed border-slate-200 dark:border-slate-800 p-5 text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+          <div className="rounded-2xl bg-white dark:bg-[#0B1836] border border-dashed border-slate-200 dark:border-cyan-900/50 p-5 text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             {t.noPending}
           </div>
         ) : (
@@ -290,7 +296,7 @@ export const TodoListTool: React.FC<TodoListToolProps> = ({ language, t }) => {
           )}
         </div>
         {completedTasks.length === 0 ? (
-          <div className="rounded-2xl bg-white dark:bg-[#131C31] border border-dashed border-slate-200 dark:border-slate-800 p-5 text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+          <div className="rounded-2xl bg-white dark:bg-[#0B1836] border border-dashed border-slate-200 dark:border-cyan-900/50 p-5 text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             {t.noCompleted}
           </div>
         ) : (
@@ -304,9 +310,9 @@ export const TodoListTool: React.FC<TodoListToolProps> = ({ language, t }) => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="clear-completed-title"
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#040D21]/80 backdrop-blur-sm"
         >
-          <div className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 p-6 pb-[max(1.5rem,calc(env(safe-area-inset-bottom,0px)+1rem))] space-y-4 shadow-xl">
+          <div className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/60 p-6 pb-[max(1.5rem,calc(env(safe-area-inset-bottom,0px)+1rem))] space-y-4 shadow-xl">
             <div className="flex items-center justify-between gap-2">
               <h3
                 id="clear-completed-title"
@@ -318,7 +324,7 @@ export const TodoListTool: React.FC<TodoListToolProps> = ({ language, t }) => {
                 type="button"
                 onClick={() => setConfirmClearOpen(false)}
                 aria-label={t.cancelBtn}
-                className="min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700"
+                className="min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -330,7 +336,7 @@ export const TodoListTool: React.FC<TodoListToolProps> = ({ language, t }) => {
               <button
                 type="button"
                 onClick={() => setConfirmClearOpen(false)}
-                className="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-sm font-semibold min-h-[44px]"
+                className="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-[#0D1E42] text-slate-800 dark:text-slate-200 text-sm font-semibold min-h-[44px]"
               >
                 {t.cancelBtn}
               </button>

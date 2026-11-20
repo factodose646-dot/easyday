@@ -4,8 +4,8 @@ import {
   Calendar,
   Languages,
   LayoutGrid,
-  Moon,
   Megaphone,
+  Moon,
   Search,
   Settings,
   Sun,
@@ -94,7 +94,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <EasyDayLogo className="w-9 h-9 shrink-0" />
           <div className="min-w-0">
             <EasyDayWordmark className="text-xl block leading-none" />
-            <span className="text-[11px] font-medium text-teal-700 dark:text-teal-400 block mt-0.5 truncate">
+            <span className="text-[11px] font-semibold text-cyan-700 dark:text-cyan-300 block mt-0.5 truncate">
               {t.brand.tagline}
             </span>
           </div>
@@ -105,7 +105,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             type="button"
             onClick={onToggleLanguage}
             aria-label={t.settings.languageLabel}
-            className="min-h-[44px] px-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            className="min-h-[44px] px-3 rounded-xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-[#1B315E] text-xs font-semibold text-slate-700 dark:text-cyan-300 hover:bg-slate-50 dark:hover:bg-[#11244D] transition-colors"
           >
             {language === 'en' ? 'اردو' : 'EN'}
           </button>
@@ -113,29 +113,29 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             type="button"
             onClick={onToggleTheme}
             aria-label={t.settings.themeLabel}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-amber-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-[#1B315E] text-slate-700 dark:text-yellow-400 hover:bg-slate-50 dark:hover:bg-[#11244D] transition-colors"
           >
             {theme === 'light' ? (
-              <Moon className="w-4 h-4 text-blue-600" />
+              <Moon className="w-4 h-4 text-cyan-700" />
             ) : (
-              <Sun className="w-4 h-4 text-amber-400" />
+              <Sun className="w-4 h-4 text-yellow-400" />
             )}
           </button>
         </div>
       </header>
 
       {/* Hero Greeting & Current Date Card */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0B6FF2] via-[#0B6FF2] to-[#0D9488] text-white p-5 sm:p-6 shadow-sm">
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#06122E] via-[#0B204F] to-[#0E316C] border border-cyan-500/35 text-white p-5 sm:p-6 shadow-sm">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1.5 min-w-0">
-            <div className="flex items-center gap-2 text-xs font-medium text-sky-100">
-              <Calendar className="w-3.5 h-3.5 shrink-0 text-amber-300" aria-hidden="true" />
+            <div className="flex items-center gap-2 text-xs font-semibold text-cyan-200">
+              <Calendar className="w-3.5 h-3.5 shrink-0 text-yellow-400" aria-hidden="true" />
               <time className="truncate">{formattedDate}</time>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-balance">
               {greetingText}
             </h1>
-            <p className="text-sm text-sky-100/95 max-w-xl">
+            <p className="text-sm text-cyan-100/90 max-w-xl">
               {t.greetings.subtitle}
             </p>
           </div>
@@ -143,7 +143,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <button
             type="button"
             onClick={() => onNavigateTab('tools')}
-            className="self-start sm:self-center shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-900 font-semibold text-sm transition-colors min-h-[44px]"
+            className="self-start sm:self-center shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-[#040D21] font-bold text-sm transition-colors min-h-[44px]"
           >
             <span>{t.dashboard.viewAllTools}</span>
             <ArrowRight className="w-4 h-4 rtl:rotate-180" />
@@ -155,7 +155,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       <section aria-label={t.dashboard.searchPlaceholder}>
         <div className="relative">
           <Search
-            className="w-5 h-5 text-slate-400 dark:text-slate-500 absolute top-1/2 -translate-y-1/2 start-4 pointer-events-none"
+            className="w-5 h-5 text-slate-400 dark:text-cyan-400/70 absolute top-1/2 -translate-y-1/2 start-4 pointer-events-none"
             aria-hidden="true"
           />
           <input
@@ -164,7 +164,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t.dashboard.searchPlaceholder}
             aria-label={t.dashboard.searchPlaceholder}
-            className="w-full h-12 ps-12 pe-12 rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow"
+            className="w-full h-12 ps-12 pe-12 rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-[#1B315E] text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-shadow"
           />
           {isSearching && (
             <button
@@ -180,7 +180,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
         {/* Live Search Results */}
         {isSearching && (
-          <div className="mt-3 rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 p-4">
+          <div className="mt-3 rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-[#1B315E] p-4">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 {t.dashboard.searchResultsTitle} · {filteredTools.length}
@@ -195,7 +195,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-colors min-h-[40px]"
+                  className="px-4 py-2 rounded-xl bg-cyan-500 text-[#040D21] text-xs font-bold hover:bg-cyan-400 transition-colors min-h-[40px]"
                 >
                   {t.dashboard.resetSearch}
                 </button>
@@ -209,7 +209,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                       key={tool.id}
                       type="button"
                       onClick={() => onSelectTool(tool.id)}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 hover:bg-blue-50 dark:hover:bg-slate-800 text-start transition-colors min-h-[56px]"
+                      className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-[#061026] hover:bg-cyan-50 dark:hover:bg-[#11244D] border border-transparent dark:border-[#1B315E] text-start transition-colors min-h-[56px]"
                     >
                       <ToolIcon toolId={tool.id} size="sm" />
                       <div className="min-w-0 flex-1">
@@ -241,7 +241,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <button
             type="button"
             onClick={() => onNavigateTab('tools')}
-            className="text-xs sm:text-sm font-semibold text-blue-600 dark:text-sky-400 hover:underline whitespace-nowrap min-h-[40px] px-2 flex items-center gap-1"
+            className="text-xs sm:text-sm font-semibold text-cyan-700 dark:text-cyan-300 hover:underline whitespace-nowrap min-h-[40px] px-2 flex items-center gap-1"
           >
             <span>{t.dashboard.viewAllTools}</span>
             <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
@@ -256,11 +256,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 key={tool.id}
                 type="button"
                 onClick={() => onSelectTool(tool.id)}
-                className="group flex sm:flex-col items-center sm:items-start gap-3.5 sm:gap-3 p-4 rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200/90 dark:border-slate-800 hover:border-blue-400 dark:hover:border-sky-500/70 text-start transition-colors active:scale-[0.99] min-h-[64px]"
+                className="group flex sm:flex-col items-center sm:items-start gap-3.5 sm:gap-3 p-4 rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200/90 dark:border-[#1B315E] hover:border-cyan-500 dark:hover:border-cyan-400/70 text-start transition-colors active:scale-[0.99] min-h-[64px]"
               >
                 <div className="flex items-center justify-between sm:w-full shrink-0">
                   <ToolIcon toolId={tool.id} size="md" />
-                  <ArrowRight className="hidden sm:block w-4 h-4 text-slate-400 group-hover:text-blue-600 dark:group-hover:text-sky-400 rtl:rotate-180 transition-colors" />
+                  <ArrowRight className="hidden sm:block w-4 h-4 text-slate-400 group-hover:text-cyan-600 dark:group-hover:text-yellow-300 rtl:rotate-180 transition-colors" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">
@@ -299,7 +299,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 key={tool.id}
                 type="button"
                 onClick={() => onSelectTool(tool.id)}
-                className="flex items-center gap-3 p-3.5 rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200/90 dark:border-slate-800 hover:border-teal-500/70 dark:hover:border-teal-400/60 text-start transition-colors min-h-[56px]"
+                className="flex items-center gap-3 p-3.5 rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200/90 dark:border-[#1B315E] hover:border-yellow-400/70 dark:hover:border-yellow-400/70 text-start transition-colors min-h-[56px]"
               >
                 <ToolIcon toolId={tool.id} size="sm" />
                 <div className="min-w-0">
@@ -320,14 +320,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       {announcement && (
         <section
           aria-label={t.dashboard.announcementLabel}
-          className="rounded-3xl bg-white dark:bg-[#131C31] border border-slate-200/90 dark:border-slate-800 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          className="rounded-3xl bg-white dark:bg-[#0B1836] border border-slate-200/90 dark:border-yellow-400/35 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
         >
           <div className="flex items-start gap-3.5 min-w-0">
-            <div className="w-11 h-11 rounded-2xl bg-sky-50 dark:bg-sky-950/60 text-[#0B6FF2] dark:text-sky-400 flex items-center justify-center shrink-0">
+            <div className="w-11 h-11 rounded-2xl bg-yellow-400/20 text-amber-700 dark:text-yellow-300 flex items-center justify-center shrink-0">
               <Megaphone className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-semibold text-teal-700 dark:text-teal-400">
+              <p className="text-xs font-semibold text-cyan-700 dark:text-cyan-300">
                 {t.brand.storeName} · {t.dashboard.announcementLabel}
               </p>
               <h2 className="text-base font-bold text-slate-900 dark:text-white mt-0.5">
@@ -346,7 +346,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               href={announcement.actionUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs sm:text-sm font-semibold transition-colors min-h-[44px]"
+              className="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-[#040D21] text-xs sm:text-sm font-bold transition-colors min-h-[44px]"
             >
               <span className="whitespace-nowrap">
                 {announcement.ctaText || t.dashboard.announcementCtaFallback}
@@ -370,9 +370,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <button
             type="button"
             onClick={() => onNavigateTab('tools')}
-            className="flex flex-col items-start gap-2.5 p-4 rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200/90 dark:border-slate-800 hover:border-blue-400 dark:hover:border-sky-500 text-start transition-colors min-h-[104px]"
+            className="flex flex-col items-start gap-2.5 p-4 rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200/90 dark:border-[#1B315E] hover:border-cyan-500 dark:hover:border-cyan-400 text-start transition-colors min-h-[104px]"
           >
-            <span className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-sky-400 flex items-center justify-center">
+            <span className="w-9 h-9 rounded-xl bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 flex items-center justify-center">
               <LayoutGrid className="w-5 h-5" />
             </span>
             <div>
@@ -388,9 +388,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <button
             type="button"
             onClick={onToggleLanguage}
-            className="flex flex-col items-start gap-2.5 p-4 rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200/90 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-400 text-start transition-colors min-h-[104px]"
+            className="flex flex-col items-start gap-2.5 p-4 rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200/90 dark:border-[#1B315E] hover:border-cyan-500 dark:hover:border-cyan-400 text-start transition-colors min-h-[104px]"
           >
-            <span className="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center">
+            <span className="w-9 h-9 rounded-xl bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 flex items-center justify-center">
               <Languages className="w-5 h-5" />
             </span>
             <div>
@@ -406,9 +406,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <button
             type="button"
             onClick={onToggleTheme}
-            className="flex flex-col items-start gap-2.5 p-4 rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200/90 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-400 text-start transition-colors min-h-[104px]"
+            className="flex flex-col items-start gap-2.5 p-4 rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200/90 dark:border-[#1B315E] hover:border-yellow-400 dark:hover:border-yellow-400 text-start transition-colors min-h-[104px]"
           >
-            <span className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+            <span className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-yellow-400/15 text-amber-600 dark:text-yellow-300 flex items-center justify-center">
               {theme === 'light' ? (
                 <Moon className="w-5 h-5" />
               ) : (
@@ -430,9 +430,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <button
             type="button"
             onClick={() => onNavigateTab('settings')}
-            className="flex flex-col items-start gap-2.5 p-4 rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200/90 dark:border-slate-800 hover:border-blue-400 dark:hover:border-sky-500 text-start transition-colors min-h-[104px]"
+            className="flex flex-col items-start gap-2.5 p-4 rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200/90 dark:border-[#1B315E] hover:border-cyan-500 dark:hover:border-cyan-400 text-start transition-colors min-h-[104px]"
           >
-            <span className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-blue-600 dark:text-sky-400 flex items-center justify-center">
+            <span className="w-9 h-9 rounded-xl bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 flex items-center justify-center">
               <Settings className="w-5 h-5" />
             </span>
             <div>

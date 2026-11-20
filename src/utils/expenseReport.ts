@@ -2,6 +2,12 @@ import { jsPDF } from 'jspdf';
 import { ToolTranslationBundle } from '../i18n/toolTranslations';
 import { Language } from '../types';
 import {
+  isNativeAndroid,
+  openAndroidPdfUri,
+  saveAndroidPdfWithPicker,
+  shareAndroidPdf,
+} from './androidBridge';
+import {
   getCurrentMonthISO,
   getTodayISO,
   TransactionCategory,
@@ -44,6 +50,19 @@ export interface GeneratedPdfResult {
   filename: string;
   pageCount: number;
   mode: 'vector' | 'canvas';
+}
+
+export interface PdfPreviewBundle {
+  pdf: GeneratedPdfResult;
+  pageImages: string[];
+}
+
+export interface DashboardChartBucket {
+  key: string;
+  label: string;
+  shortLabel: string;
+  income: number;
+  expense: number;
 }
 
 const A4_PT_WIDTH = 595.28;
@@ -114,6 +133,136 @@ export function getMonthRange(monthISO: string): {
     startDate: `${y}-${pad2(m)}-01`,
     endDate: `${y}-${pad2(m)}-${pad2(lastDay)}`,
   };
+}
+
+/**
+ * Shifts a daily/weekly ISO date or monthly `YYYY-MM` anchor by `delta` periods.
+ */
+export function shiftPeriodAnchor(
+  period: ReportPeriodType,
+  anchorValue: string,
+  delta: -1 | 1
+): string {
+  const dayMs = 24 * 60 * 60 * 1000;
+  if (period === 'monthly') {
+    const safeMonth = isValidISOMonth(anchorValue)
+      ? anchorValue
+      : getCurrentMonthISO();
+    const [y, m] = safeMonth.split('-').map(Number);
+    const shifted = new Date(Date.UTC(y, m - 1 + delta, 1));
+    return `${shifted.getUTCFullYear()}-${pad2(shifted.getUTCMonth() + 1)}`;
+  }
+
+  const safeDay = isValidISODate(anchorValue) ? anchorValue : getTodayISO();
+  const [y, m, d] = safeDay.split('-').map(Number);
+  const offsetDays = period === 'weekly' ? delta * 7 : delta;
+  return formatUTCDateISO(Date.UTC(y, m - 1, d) + offsetDays * dayMs);
+}
+
+/**
+ * Computes chart bars directly from actual transactions inside the report range.
+ * - Daily: income & expense totals by category or Morning/All entries summary.
+ * - Weekly: 7 buckets Mon–Sun covering `report.startDate`..`report.endDate`.
+ * - Monthly: week buckets across days 1–7, 8–14, 15–21, 22–28, 29–end.
+ */
+export function computeDashboardSeries(
+  report: ExpenseReportData,
+  t: ToolTranslationBundle['expense']
+): DashboardChartBucket[] {
+  const dayMs = 24 * 60 * 60 * 1000;
+
+  if (report.period === 'weekly') {
+    const [sy, sm, sd] = report.startDate.split('-').map(Number);
+    const startMs = Date.UTC(sy, sm - 1, sd);
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const buckets: DashboardChartBucket[] = [];
+    const lookup = new Map<string, DashboardChartBucket>();
+
+    for (let i = 0; i < 7; i++) {
+      const iso = formatUTCDateISO(startMs + i * dayMs);
+      const item: DashboardChartBucket = {
+        key: iso,
+        label: iso,
+        shortLabel: `${dayNames[i]} ${iso.slice(8, 10)}`,
+        income: 0,
+        expense: 0,
+      };
+      buckets.push(item);
+      lookup.set(iso, item);
+    }
+
+    for (const tx of report.transactions) {
+      const bucket = lookup.get(tx.date);
+      if (!bucket) continue;
+      if (tx.type === 'income') bucket.income = Number((bucket.income + tx.amount).toFixed(2));
+      else bucket.expense = Number((bucket.expense + tx.amount).toFixed(2));
+    }
+    return buckets;
+  }
+
+  if (report.period === 'monthly') {
+    const lastDayNum = Number(report.endDate.slice(8, 10)) || 30;
+    const ranges: Array<{ label: string; startDay: number; endDay: number }> = [
+      { label: '1–7', startDay: 1, endDay: 7 },
+      { label: '8–14', startDay: 8, endDay: 14 },
+      { label: '15–21', startDay: 15, endDay: 21 },
+      { label: '22–28', startDay: 22, endDay: 28 },
+    ];
+    if (lastDayNum >= 29) {
+      ranges.push({ label: `29–${lastDayNum}`, startDay: 29, endDay: lastDayNum });
+    }
+
+    const buckets: DashboardChartBucket[] = ranges.map((r, idx) => ({
+      key: `wk-${idx + 1}`,
+      label: `W${idx + 1} (${r.label})`,
+      shortLabel: r.label,
+      income: 0,
+      expense: 0,
+    }));
+
+    for (const tx of report.transactions) {
+      const dayNum = Number(tx.date.slice(8, 10));
+      const idx = Math.min(buckets.length - 1, Math.max(0, Math.floor((dayNum - 1) / 7)));
+      const bucket = buckets[idx];
+      if (!bucket) continue;
+      if (tx.type === 'income') bucket.income = Number((bucket.income + tx.amount).toFixed(2));
+      else bucket.expense = Number((bucket.expense + tx.amount).toFixed(2));
+    }
+    return buckets;
+  }
+
+  // Daily: top categories present on this date, or a single day column
+  const byCat = new Map<TransactionCategory, { income: number; expense: number }>();
+  for (const tx of report.transactions) {
+    const cur = byCat.get(tx.category) ?? { income: 0, expense: 0 };
+    if (tx.type === 'income') cur.income = Number((cur.income + tx.amount).toFixed(2));
+    else cur.expense = Number((cur.expense + tx.amount).toFixed(2));
+    byCat.set(tx.category, cur);
+  }
+  if (byCat.size === 0) {
+    return [
+      {
+        key: report.startDate,
+        label: report.startDate,
+        shortLabel: report.startDate.slice(5),
+        income: 0,
+        expense: 0,
+      },
+    ];
+  }
+  return Array.from(byCat.entries())
+    .map(([category, vals]) => {
+      const catLabel = t.categories?.[category] || String(category);
+      return {
+        key: category,
+        label: catLabel,
+        shortLabel: catLabel.slice(0, 8),
+        income: vals.income,
+        expense: vals.expense,
+      };
+    })
+    .sort((a, b) => b.income + b.expense - (a.income + a.expense))
+    .slice(0, 7);
 }
 
 function buildCategoryBreakdown(
@@ -262,8 +411,8 @@ function reportContainsNonLatin1(
   return false;
 }
 
-function toAsciiSafe(text: string): string {
-  return text.replace(/[^\x20-\xFF]/g, '?');
+function toAsciiSafe(text?: string | null): string {
+  return (text ?? '').replace(/[^\x20-\xFF]/g, '?');
 }
 
 function formatGeneratedTimestamp(date: Date, language: Language): string {
@@ -307,11 +456,13 @@ function renderVectorPdf(
   const footerReserveY = A4_PT_HEIGHT - 40;
   let y = 32;
 
-  // Header Banner
-  doc.setFillColor(11, 111, 242); // #0B6FF2
+  // Header Banner — Dark Navy + Cyan + Yellow Branding
+  doc.setFillColor(4, 13, 33); // #040D21 deep navy
   doc.roundedRect(marginX, y, contentW, 74, 10, 10, 'F');
-  doc.setFillColor(13, 148, 136); // #0D9488 accent bar
-  doc.rect(marginX, y + 66, contentW, 8, 'F');
+  doc.setFillColor(6, 182, 212); // #06B6D4 cyan bar
+  doc.rect(marginX, y + 66, contentW * 0.72, 8, 'F');
+  doc.setFillColor(250, 204, 21); // #FACC15 yellow accent bar
+  doc.rect(marginX + contentW * 0.72, y + 66, contentW * 0.28, 8, 'F');
 
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
@@ -320,7 +471,7 @@ function renderVectorPdf(
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9.5);
-  doc.setTextColor(224, 242, 254);
+  doc.setTextColor(165, 243, 252); // cyan-200
   doc.text(toAsciiSafe(labels.subtitle), marginX + 16, y + 46);
 
   // Badge on right of banner
@@ -328,7 +479,7 @@ function renderVectorPdf(
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
   const badgeW = Math.max(92, doc.getTextWidth(badgeText) + 20);
-  doc.setFillColor(255, 255, 255);
+  doc.setFillColor(250, 204, 21); // #FACC15
   doc.roundedRect(
     marginX + contentW - badgeW - 14,
     y + 16,
@@ -338,7 +489,7 @@ function renderVectorPdf(
     6,
     'F'
   );
-  doc.setTextColor(11, 111, 242);
+  doc.setTextColor(4, 13, 33);
   doc.text(
     badgeText,
     marginX + contentW - badgeW / 2 - 14,
@@ -467,7 +618,11 @@ function renderVectorPdf(
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8.8);
       doc.setTextColor(15, 23, 42);
-      doc.text(toAsciiSafe(t.categories[row.category]), marginX + 8, y + 13.5);
+      doc.text(
+        toAsciiSafe(t.categories[row.category] ?? row.category),
+        marginX + 8,
+        y + 13.5
+      );
 
       const typeLabel =
         row.kind === 'income' ? toAsciiSafe(t.typeIncome) : toAsciiSafe(t.typeExpense);
@@ -569,7 +724,7 @@ function renderVectorPdf(
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(71, 85, 105);
       doc.text(
-        toAsciiSafe(t.categories[tx.category]),
+        toAsciiSafe(t.categories[tx.category] ?? tx.category),
         marginX + 286,
         y + 14
       );
@@ -668,10 +823,10 @@ function wrapCanvasText(
 /**
  * High-DPI Canvas-to-PDF renderer used when Urdu RTL or non-Latin-1 scripts are present.
  */
-function renderCanvasPdf(
+function renderCanvasPdfInternal(
   report: ExpenseReportData,
   options: CreateExpenseReportPdfOptions
-): GeneratedPdfResult {
+): PdfPreviewBundle {
   const { language, t, generatedAt = new Date() } = options;
   const labels = t.pdfLabels;
   const isRtl = language === 'ur';
@@ -710,13 +865,19 @@ function renderCanvasPdf(
   let { ctx } = createPageCanvas();
   let y = 64;
 
-  // Header Banner
+  // Header Banner — Dark Navy + Cyan + Yellow Branding
   const grad = ctx.createLinearGradient(marginX, y, marginX + contentW, y + 148);
-  grad.addColorStop(0, '#0B6FF2');
-  grad.addColorStop(1, '#0D9488');
+  grad.addColorStop(0, '#040D21');
+  grad.addColorStop(1, '#0F2552');
   ctx.fillStyle = grad;
   drawRoundedRect(ctx, marginX, y, contentW, 148, 20);
   ctx.fill();
+
+  // Bottom accent strip (Cyan + Yellow)
+  ctx.fillStyle = '#06B6D4';
+  ctx.fillRect(marginX, y + 136, contentW * 0.72, 12);
+  ctx.fillStyle = '#FACC15';
+  ctx.fillRect(marginX + contentW * 0.72, y + 136, contentW * 0.28, 12);
 
   const headerPrimaryX = isRtl ? marginX + contentW - 32 : marginX + 32;
   const headerBadgeX = isRtl ? marginX + 32 : marginX + contentW - 32;
@@ -724,23 +885,23 @@ function renderCanvasPdf(
   ctx.fillStyle = '#FFFFFF';
   ctx.font = `700 32px ${fontFamily}`;
   ctx.textAlign = isRtl ? 'right' : 'left';
-  ctx.fillText(labels.reportTitle, headerPrimaryX, y + 60);
+  ctx.fillText(labels.reportTitle, headerPrimaryX, y + 58);
 
-  ctx.fillStyle = '#E0F2FE';
+  ctx.fillStyle = '#A5F3FC';
   ctx.font = `500 18px ${fontFamily}`;
-  ctx.fillText(labels.subtitle, headerPrimaryX, y + 102);
+  ctx.fillText(labels.subtitle, headerPrimaryX, y + 98);
 
   // Badge pill inside header
   const badgeText = getPeriodBadgeText(report.period, t);
   ctx.font = `700 18px ${fontFamily}`;
   const badgeWidth = Math.max(180, ctx.measureText(badgeText).width + 44);
   const badgeRectX = isRtl ? headerBadgeX : headerBadgeX - badgeWidth;
-  ctx.fillStyle = '#FFFFFF';
-  drawRoundedRect(ctx, badgeRectX, y + 36, badgeWidth, 44, 12);
+  ctx.fillStyle = '#FACC15';
+  drawRoundedRect(ctx, badgeRectX, y + 34, badgeWidth, 44, 12);
   ctx.fill();
-  ctx.fillStyle = '#0B6FF2';
+  ctx.fillStyle = '#040D21';
   ctx.textAlign = 'center';
-  ctx.fillText(badgeText, badgeRectX + badgeWidth / 2, y + 64);
+  ctx.fillText(badgeText, badgeRectX + badgeWidth / 2, y + 62);
 
   y += 176;
 
@@ -880,7 +1041,7 @@ function renderCanvasPdf(
       ctx.font = `500 17px ${fontFamily}`;
       ctx.fillStyle = '#0F172A';
       ctx.textAlign = isRtl ? 'right' : 'left';
-      ctx.fillText(t.categories[row.category], colCatX, y + 26);
+      ctx.fillText(t.categories[row.category] ?? row.category, colCatX, y + 26);
 
       ctx.fillStyle = row.kind === 'income' ? '#0F766E' : '#C2410C';
       ctx.fillText(
@@ -988,7 +1149,7 @@ function renderCanvasPdf(
 
       ctx.font = `500 16px ${fontFamily}`;
       ctx.fillStyle = '#475569';
-      ctx.fillText(t.categories[tx.category], tCatX, y + 28);
+      ctx.fillText(t.categories[tx.category] ?? tx.category, tCatX, y + 28);
 
       ctx.font = `700 16px ${fontFamily}`;
       ctx.fillStyle = tx.type === 'income' ? '#0F766E' : '#C2410C';
@@ -1020,6 +1181,8 @@ function renderCanvasPdf(
   });
 
   const totalPages = pages.length;
+  const pageImages: string[] = [];
+
   pages.forEach((canvas, idx) => {
     const pCtx = canvas.getContext('2d');
     if (pCtx) {
@@ -1044,9 +1207,12 @@ function renderCanvasPdf(
       );
     }
 
+    const dataUrl = canvas.toDataURL('image/png');
+    pageImages.push(dataUrl);
+
     if (idx > 0) doc.addPage();
     doc.addImage(
-      canvas.toDataURL('image/png'),
+      dataUrl,
       'PNG',
       0,
       0,
@@ -1058,10 +1224,50 @@ function renderCanvasPdf(
   });
 
   return {
-    blob: doc.output('blob'),
-    filename: getReportFilename(report),
-    pageCount: totalPages,
-    mode: 'canvas',
+    pdf: {
+      blob: doc.output('blob'),
+      filename: getReportFilename(report),
+      pageCount: totalPages,
+      mode: 'canvas',
+    },
+    pageImages,
+  };
+}
+
+/**
+ * Generates visual A4 preview page images + the final PDF Blob before export,
+ * so the user can inspect every page inside the modal across Web and Android APK.
+ */
+export function createExpenseReportPreviewBundle(
+  report: ExpenseReportData,
+  options: CreateExpenseReportPdfOptions
+): PdfPreviewBundle {
+  const canUseCanvas =
+    typeof document !== 'undefined' &&
+    typeof HTMLCanvasElement !== 'undefined';
+
+  if (canUseCanvas) {
+    try {
+      const rendered = renderCanvasPdfInternal(report, options);
+      // Use compact vector PDF when strictly Latin-1 English, and visual canvas PNGs for preview!
+      const needsUnicodeCanvas =
+        options.language === 'ur' || reportContainsNonLatin1(report, options.t);
+      if (!needsUnicodeCanvas) {
+        const vectorPdf = renderVectorPdf(report, options);
+        return {
+          pdf: vectorPdf,
+          pageImages: rendered.pageImages,
+        };
+      }
+      return rendered;
+    } catch {
+      // Fallback safely if canvas context is unavailable (e.g. headless SSR tests)
+    }
+  }
+
+  return {
+    pdf: renderVectorPdf(report, options),
+    pageImages: [],
   };
 }
 
@@ -1077,7 +1283,7 @@ export function createExpenseReportPdf(
 
   if (canUseCanvas && needsUnicodeCanvas) {
     try {
-      return renderCanvasPdf(report, options);
+      return renderCanvasPdfInternal(report, options).pdf;
     } catch {
       // Fallback to vector jsPDF if canvas context is unavailable (e.g., jsdom)
       return renderVectorPdf(report, options);
@@ -1085,6 +1291,51 @@ export function createExpenseReportPdf(
   }
 
   return renderVectorPdf(report, options);
+}
+
+export interface SavePdfOutcome {
+  status: 'saved' | 'cancelled';
+  method: 'android-picker' | 'browser-picker' | 'browser-download';
+  filename: string;
+  locationLabel: string;
+  androidUri?: string;
+}
+
+interface BrowserSaveFilePickerWindow extends Window {
+  showSaveFilePicker?: (options?: {
+    suggestedName?: string;
+    types?: Array<{
+      description?: string;
+      accept: Record<string, string[]>;
+    }>;
+  }) => Promise<{
+    name: string;
+    createWritable: () => Promise<{
+      write: (data: Blob) => Promise<void>;
+      close: () => Promise<void>;
+    }>;
+  }>;
+}
+
+export function sanitizePdfFilename(
+  rawName: string,
+  fallbackName: string
+): string {
+  const cleaned = rawName
+    .trim()
+    .replace(/[\\/:*?"<>|]/g, '_')
+    .replace(/\s+/g, ' ');
+  const base = cleaned || fallbackName;
+  return base.toLowerCase().endsWith('.pdf') ? base : `${base}.pdf`;
+}
+
+export function supportsCustomSavePath(): boolean {
+  if (isNativeAndroid()) return true;
+  if (typeof window === 'undefined') return false;
+  return (
+    typeof (window as BrowserSaveFilePickerWindow).showSaveFilePicker ===
+    'function'
+  );
 }
 
 export function downloadPdfBlob(blob: Blob, filename: string): void {
@@ -1105,7 +1356,94 @@ export function downloadPdfBlob(blob: Blob, filename: string): void {
   }, 30_000);
 }
 
+export async function saveExpenseReportPdf(
+  blob: Blob,
+  requestedFilename: string
+): Promise<SavePdfOutcome> {
+  const safeName = sanitizePdfFilename(
+    requestedFilename,
+    'EasyDay-Expense-Report.pdf'
+  );
+
+  // 1. Native Android APK: open Android Storage Access Framework picker so user picks ANY folder/path
+  if (isNativeAndroid()) {
+    const res = await saveAndroidPdfWithPicker(blob, safeName);
+    if (res.cancelled || !res.saved) {
+      return {
+        status: 'cancelled',
+        method: 'android-picker',
+        filename: safeName,
+        locationLabel: '',
+      };
+    }
+    const finalName = res.displayName || safeName;
+    return {
+      status: 'saved',
+      method: 'android-picker',
+      filename: finalName,
+      locationLabel: res.displayPath || finalName,
+      androidUri: res.uri,
+    };
+  }
+
+  // 2. Desktop Chrome/Edge: open OS native Save As folder/path picker when supported
+  if (typeof window !== 'undefined') {
+    const pickerFn = (window as BrowserSaveFilePickerWindow).showSaveFilePicker;
+    if (typeof pickerFn === 'function') {
+      try {
+        const fileHandle = await pickerFn({
+          suggestedName: safeName,
+          types: [
+            {
+              description: 'PDF Document',
+              accept: { 'application/pdf': ['.pdf'] },
+            },
+          ],
+        });
+        const writable = await fileHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return {
+          status: 'saved',
+          method: 'browser-picker',
+          filename: fileHandle.name || safeName,
+          locationLabel: fileHandle.name || safeName,
+        };
+      } catch (err) {
+        if (
+          err instanceof DOMException &&
+          (err.name === 'AbortError' || err.name === 'NotAllowedError')
+        ) {
+          if (err.name === 'AbortError') {
+            return {
+              status: 'cancelled',
+              method: 'browser-picker',
+              filename: safeName,
+              locationLabel: '',
+            };
+          }
+          // If blocked by iframe/cross-origin policy, fall through cleanly to standard download
+        } else {
+          throw err;
+        }
+      }
+    }
+  }
+
+  // 3. Fallback for standard web browsers without File System Access API
+  downloadPdfBlob(blob, safeName);
+  return {
+    status: 'saved',
+    method: 'browser-download',
+    filename: safeName,
+    locationLabel: `Downloads/${safeName}`,
+  };
+}
+
 export function canSharePdfFiles(): boolean {
+  if (isNativeAndroid()) {
+    return true;
+  }
   try {
     if (
       typeof navigator === 'undefined' ||
@@ -1129,10 +1467,15 @@ export async function sharePdfBlob(
   filename: string,
   title: string
 ): Promise<'shared' | 'cancelled'> {
+  const safeName = sanitizePdfFilename(filename, 'EasyDay-Expense-Report.pdf');
+  if (isNativeAndroid()) {
+    const res = await shareAndroidPdf(blob, safeName, title);
+    return res.shared ? 'shared' : 'cancelled';
+  }
   if (typeof File === 'undefined' || typeof navigator.share !== 'function') {
     throw new Error('File sharing is not supported on this device.');
   }
-  const file = new File([blob], filename, { type: 'application/pdf' });
+  const file = new File([blob], safeName, { type: 'application/pdf' });
   try {
     await navigator.share({
       title,
@@ -1145,4 +1488,10 @@ export async function sharePdfBlob(
     }
     throw err;
   }
+}
+
+export async function openSavedAndroidPdf(uri: string): Promise<boolean> {
+  if (!isNativeAndroid() || !uri) return false;
+  const res = await openAndroidPdfUri(uri);
+  return res.opened;
 }

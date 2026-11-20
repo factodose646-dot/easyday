@@ -36,7 +36,7 @@ export const ToolDetailScreen: React.FC<ToolDetailScreenProps> = ({
             type="button"
             onClick={onBack}
             aria-label={t.toolDetail.backToTools}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors min-h-[44px] shrink-0"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-[#1B315E] text-xs sm:text-sm font-semibold text-slate-700 dark:text-cyan-300 hover:bg-slate-50 dark:hover:bg-[#11244D] transition-colors min-h-[44px] shrink-0"
           >
             <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
             <span>{t.toolDetail.backToTools}</span>

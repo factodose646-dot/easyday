@@ -148,8 +148,8 @@ export default function App() {
     const activeBg = showSplash
       ? '#040D21'
       : theme === 'dark'
-        ? '#0B1120'
-        : '#F6F9FC';
+        ? '#040D21'
+        : '#F2F6FC';
 
     root.style.backgroundColor = activeBg;
     document.body.style.backgroundColor = activeBg;
@@ -261,7 +261,7 @@ export default function App() {
   return (
     <div
       dir={language === 'ur' ? 'rtl' : 'ltr'}
-      className="min-h-[100dvh] bg-[#F6F9FC] dark:bg-[#0B1120] text-slate-900 dark:text-slate-100 flex flex-col md:flex-row transition-colors duration-150"
+      className="min-h-[100dvh] bg-[#F2F6FC] dark:bg-[#040D21] text-slate-900 dark:text-slate-100 flex flex-col md:flex-row transition-colors duration-150"
     >
       {/* Tablet / Desktop Adaptive Android Rail */}
       <DesktopNavRail

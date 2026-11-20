@@ -72,7 +72,7 @@ export const EasyDayWordmark: React.FC<{ className?: string }> = ({
   return (
     <span className={`font-display font-extrabold tracking-tight ${className}`}>
       <span className="text-[#0F2957] dark:text-white">Easy</span>
-      <span className="text-[#0B6FF2] dark:text-sky-400">Day</span>
+      <span className="text-cyan-600 dark:text-cyan-400">Day</span>
     </span>
   );
 };

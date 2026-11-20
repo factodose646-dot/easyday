@@ -52,7 +52,7 @@ function waitForFonts(timeoutMs = 3500): Promise<void> {
 
 export function readStoredPreferences(): StartupPreferences {
   let language: Language = 'en';
-  let theme: Theme = 'light';
+  let theme: Theme = 'dark';
   let recentToolIds: ToolId[] = DEFAULT_RECENTS;
 
   try {

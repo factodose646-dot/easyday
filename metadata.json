@@ -2,5 +2,5 @@
   "name": "EasyDay",
   "description": "Everything Made Easy — Mobile-first daily utility companion by ZAIDI INTERACTIVE, distributed by ZAIDI STORE.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }

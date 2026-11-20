@@ -72,7 +72,7 @@ const AdMediaThumb: React.FC<{
   }
 
   return (
-    <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-sky-950/60 text-[#0B6FF2] dark:text-sky-400 flex items-center justify-center shrink-0">
+    <div className="w-16 h-16 rounded-2xl bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 flex items-center justify-center shrink-0">
       {mediaType === 'video' ? (
         <Film className="w-6 h-6" aria-hidden="true" />
       ) : (
@@ -206,7 +206,7 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-0.5">
             {tAdmin.ads.sectionSubtitle}
           </p>
-          <p className="text-xs text-teal-700 dark:text-teal-400 font-semibold tabular-nums mt-1">
+          <p className="text-xs text-cyan-700 dark:text-yellow-400 font-semibold tabular-nums mt-1">
             {liveCount} {tAdmin.overview.liveSuffix} · {ads.length} total
           </p>
         </div>
@@ -215,7 +215,7 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
           type="button"
           onClick={openCreateModal}
           data-testid="create-global-ad-btn"
-          className="self-start sm:self-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0B6FF2] hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold min-h-[44px] transition-colors shrink-0"
+          className="self-start sm:self-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-[#040D21] text-xs sm:text-sm font-bold min-h-[44px] transition-colors shrink-0 shadow-sm shadow-cyan-500/20"
         >
           <Plus className="w-4 h-4" />
           <span>{tAdmin.ads.addAdBtn}</span>
@@ -224,7 +224,7 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
 
       {/* Ads List */}
       {ads.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-[#131C31] border border-dashed border-slate-200 dark:border-slate-800 p-8 text-center text-sm text-slate-500 dark:text-slate-400">
+        <div className="rounded-3xl bg-white dark:bg-[#0B1836] border border-dashed border-slate-200 dark:border-cyan-900/50 p-8 text-center text-sm text-slate-500 dark:text-slate-400">
           {tAdmin.ads.emptyAds}
         </div>
       ) : (
@@ -238,7 +238,7 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
             return (
               <article
                 key={ad.id}
-                className="rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 p-4 sm:p-5 flex flex-col justify-between gap-4"
+                className="rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 p-4 sm:p-5 flex flex-col justify-between gap-4"
               >
                 <div className="flex items-start gap-3.5 min-w-0">
                   <AdMediaThumb
@@ -253,7 +253,7 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
                       <span
                         className={`inline-flex items-center gap-1 font-semibold ${
                           isLive
-                            ? 'text-teal-700 dark:text-teal-400'
+                            ? 'text-cyan-700 dark:text-cyan-400'
                             : 'text-slate-500 dark:text-slate-400'
                         }`}
                       >
@@ -302,14 +302,14 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
                 </div>
 
                 {/* Action Footer: Publish/Unpublish, Activate/Deactivate, Edit, Delete */}
-                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+                <div className="pt-3 border-t border-slate-100 dark:border-cyan-900/40 grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
                   <button
                     type="button"
                     disabled={isBusy}
                     onClick={() =>
                       void handleFlagToggle(ad, { published: !ad.published })
                     }
-                    className="min-h-[40px] px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/50 hover:bg-teal-100 dark:hover:bg-teal-900/60 disabled:opacity-60 text-xs font-semibold text-teal-700 dark:text-teal-300 inline-flex items-center justify-center gap-1.5 transition-colors"
+                    className="min-h-[40px] px-3 py-1.5 rounded-xl bg-cyan-50 dark:bg-cyan-500/15 hover:bg-cyan-100 dark:hover:bg-cyan-500/25 disabled:opacity-60 text-xs font-semibold text-cyan-700 dark:text-cyan-300 inline-flex items-center justify-center gap-1.5 transition-colors"
                   >
                     <Globe className="w-3.5 h-3.5 shrink-0" />
                     <span>
@@ -325,7 +325,7 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
                     onClick={() =>
                       void handleFlagToggle(ad, { active: !ad.active })
                     }
-                    className="min-h-[40px] px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 disabled:opacity-60 text-xs font-semibold text-slate-800 dark:text-slate-200 inline-flex items-center justify-center gap-1.5 transition-colors"
+                    className="min-h-[40px] px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-[#0D1E42] hover:bg-slate-200/80 dark:hover:bg-[#132959] disabled:opacity-60 text-xs font-semibold text-slate-800 dark:text-slate-200 inline-flex items-center justify-center gap-1.5 transition-colors"
                   >
                     {ad.active ? (
                       <>
@@ -334,7 +334,7 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
                       </>
                     ) : (
                       <>
-                        <Eye className="w-3.5 h-3.5 shrink-0 text-teal-600 dark:text-teal-400" />
+                        <Eye className="w-3.5 h-3.5 shrink-0 text-cyan-600 dark:text-cyan-400" />
                         <span>{tAdmin.ads.activateBtn}</span>
                       </>
                     )}
@@ -344,7 +344,7 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
                     type="button"
                     disabled={isBusy}
                     onClick={() => openEditModal(ad)}
-                    className="min-h-[40px] px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-xs font-semibold text-[#0B6FF2] dark:text-sky-400 inline-flex items-center justify-center gap-1.5 transition-colors"
+                    className="min-h-[40px] px-3 py-1.5 rounded-xl bg-yellow-50 dark:bg-yellow-400/15 hover:bg-yellow-100 dark:hover:bg-yellow-400/25 text-xs font-semibold text-amber-700 dark:text-yellow-300 inline-flex items-center justify-center gap-1.5 transition-colors"
                   >
                     <Pencil className="w-3.5 h-3.5 shrink-0" />
                     <span>{tAdmin.ads.editBtn}</span>
@@ -375,9 +375,9 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
           role="dialog"
           aria-modal="true"
           aria-labelledby="ad-modal-title"
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#040D21]/80 backdrop-blur-sm"
         >
-          <div className="w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 p-5 sm:p-6 pb-[max(1.5rem,calc(env(safe-area-inset-bottom,0px)+1rem))] space-y-4 shadow-xl max-h-[90dvh] overflow-y-auto">
+          <div className="w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/60 p-5 sm:p-6 pb-[max(1.5rem,calc(env(safe-area-inset-bottom,0px)+1rem))] space-y-4 shadow-xl max-h-[90dvh] overflow-y-auto">
             <div className="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 mx-auto sm:hidden" />
 
             <div className="flex items-center justify-between gap-3">
@@ -427,7 +427,7 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
                   }
                   placeholder={tAdmin.ads.fields.titlePlaceholder}
                   disabled={submitting}
-                  className="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0B6FF2]"
+                  className="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-[#061026] border border-slate-200 dark:border-cyan-900/60 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
 
@@ -453,7 +453,7 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
                   }
                   placeholder={tAdmin.ads.fields.descriptionPlaceholder}
                   disabled={submitting}
-                  className="w-full p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0B6FF2] resize-y"
+                  className="w-full p-3.5 rounded-xl bg-slate-50 dark:bg-[#061026] border border-slate-200 dark:border-cyan-900/60 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 resize-y"
                 />
               </div>
 
@@ -462,7 +462,7 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
                 <span className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
                   {tAdmin.ads.fields.mediaType}
                 </span>
-                <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-100 dark:bg-slate-900">
+                <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-100 dark:bg-[#061026]">
                   <button
                     type="button"
                     disabled={submitting}
@@ -471,7 +471,7 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
                     }
                     className={`min-h-[40px] rounded-lg text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-colors ${
                       form.mediaType === 'image'
-                        ? 'bg-[#0B6FF2] text-white shadow-sm'
+                        ? 'bg-cyan-500 text-[#040D21] font-bold shadow-sm'
                         : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
@@ -487,7 +487,7 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
                     }
                     className={`min-h-[40px] rounded-lg text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-colors ${
                       form.mediaType === 'video'
-                        ? 'bg-[#0B6FF2] text-white shadow-sm'
+                        ? 'bg-cyan-500 text-[#040D21] font-bold shadow-sm'
                         : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
@@ -520,13 +520,13 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
                       : tAdmin.ads.fields.mediaUrlPlaceholderImage
                   }
                   disabled={submitting}
-                  className="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0B6FF2]"
+                  className="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-[#061026] border border-slate-200 dark:border-cyan-900/60 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
 
               {/* Active & Published Status Controls */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <label className="flex items-start gap-2.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 cursor-pointer">
+                <label className="flex items-start gap-2.5 p-3 rounded-2xl bg-slate-50 dark:bg-[#061026] border border-slate-200/80 dark:border-cyan-900/50 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={form.active}
@@ -534,7 +534,7 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
                       setForm((prev) => ({ ...prev, active: e.target.checked }))
                     }
                     disabled={submitting}
-                    className="mt-0.5 w-5 h-5 rounded border-slate-300 text-[#0B6FF2] focus:ring-[#0B6FF2]"
+                    className="mt-0.5 w-5 h-5 rounded border-slate-300 text-cyan-500 focus:ring-cyan-500"
                   />
                   <div className="min-w-0">
                     <span className="block text-xs font-semibold text-slate-900 dark:text-white">
@@ -546,7 +546,7 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
                   </div>
                 </label>
 
-                <label className="flex items-start gap-2.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 cursor-pointer">
+                <label className="flex items-start gap-2.5 p-3 rounded-2xl bg-slate-50 dark:bg-[#061026] border border-slate-200/80 dark:border-cyan-900/50 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={form.published}
@@ -557,7 +557,7 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
                       }))
                     }
                     disabled={submitting}
-                    className="mt-0.5 w-5 h-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                    className="mt-0.5 w-5 h-5 rounded border-slate-300 text-cyan-500 focus:ring-cyan-500"
                   />
                   <div className="min-w-0">
                     <span className="block text-xs font-semibold text-slate-900 dark:text-white">
@@ -575,14 +575,14 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
                   type="button"
                   disabled={submitting}
                   onClick={() => setModalOpen(false)}
-                  className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm font-semibold transition-colors"
+                  className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-[#0D1E42] hover:bg-slate-200 dark:hover:bg-[#132959] text-slate-800 dark:text-slate-200 text-sm font-semibold transition-colors"
                 >
                   {tAdmin.ads.cancelBtn}
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl bg-[#0B6FF2] hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5 transition-colors"
+                  className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 disabled:opacity-60 text-[#040D21] text-sm font-bold inline-flex items-center justify-center gap-1.5 transition-colors"
                 >
                   <Send className="w-4 h-4" />
                   <span>
@@ -605,9 +605,9 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="ad-delete-confirm-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#040D21]/80 backdrop-blur-sm"
         >
-          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 p-6 space-y-4 shadow-xl">
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/60 p-6 space-y-4 shadow-xl">
             <h3
               id="ad-delete-confirm-title"
               className="text-lg font-bold text-slate-900 dark:text-white"
@@ -625,7 +625,7 @@ export const AdminGlobalAdsManager: React.FC<AdminGlobalAdsManagerProps> = ({
                 type="button"
                 disabled={deleting}
                 onClick={() => setPendingDelete(null)}
-                className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm font-semibold transition-colors"
+                className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-[#0D1E42] hover:bg-slate-200 dark:hover:bg-[#132959] text-slate-800 dark:text-slate-200 text-sm font-semibold transition-colors"
               >
                 {tAdmin.ads.cancelBtn}
               </button>

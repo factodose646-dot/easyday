@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft,
   Check,
@@ -43,20 +43,16 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
     [language]
   );
 
-  const persistNotes = useCallback((next: NoteItem[]) => {
-    setNotes(next);
-    notesStorage.save(next);
-  }, []);
+  useEffect(() => {
+    notesStorage.save(notes);
+  }, [notes]);
 
   const handleCreateNew = () => {
-    const now = Date.now();
     const newId = generateId('note');
     setEditingNoteId(newId);
     setDraftTitle('');
     setDraftDesc('');
     setAutoSavedAt(null);
-    // Do not persist until user enters content, or create on first keystroke via upsertDraft
-    void now;
   };
 
   const handleOpenEdit = (note: NoteItem) => {
@@ -69,21 +65,20 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
   const upsertDraft = useCallback(
     (id: string, titleVal: string, descVal: string) => {
       const now = Date.now();
-      const exists = notes.some((n) => n.id === id);
       const hasContent = titleVal.trim().length > 0 || descVal.trim().length > 0;
 
-      if (!exists && !hasContent) {
-        return;
-      }
-
-      if (exists) {
-        const next = notes.map((n) =>
-          n.id === id
-            ? { ...n, title: titleVal, description: descVal, updatedAt: now }
-            : n
-        );
-        persistNotes(next);
-      } else {
+      setNotes((prev) => {
+        const exists = prev.some((n) => n.id === id);
+        if (!exists && !hasContent) {
+          return prev;
+        }
+        if (exists) {
+          return prev.map((n) =>
+            n.id === id
+              ? { ...n, title: titleVal, description: descVal, updatedAt: now }
+              : n
+          );
+        }
         const created: NoteItem = {
           id,
           title: titleVal,
@@ -91,11 +86,13 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
           createdAt: now,
           updatedAt: now,
         };
-        persistNotes([created, ...notes]);
+        return [created, ...prev];
+      });
+      if (hasContent) {
+        setAutoSavedAt(now);
       }
-      setAutoSavedAt(now);
     },
-    [notes, persistNotes]
+    []
   );
 
   const handleTitleChange = (val: string) => {
@@ -114,9 +111,9 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
 
   const handleConfirmDelete = () => {
     if (!pendingDeleteId) return;
-    const next = notes.filter((n) => n.id !== pendingDeleteId);
-    persistNotes(next);
-    if (editingNoteId === pendingDeleteId) {
+    const targetId = pendingDeleteId;
+    setNotes((prev) => prev.filter((n) => n.id !== targetId));
+    if (editingNoteId === targetId) {
       setEditingNoteId(null);
     }
     setPendingDeleteId(null);
@@ -146,7 +143,7 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
           <button
             type="button"
             onClick={() => setEditingNoteId(null)}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 min-h-[44px]"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-[#102247] min-h-[44px]"
           >
             <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
             <span>{t.backToList}</span>
@@ -154,7 +151,7 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
 
           <div className="flex items-center gap-2">
             {autoSavedAt && (
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-teal-700 dark:text-teal-400">
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-cyan-700 dark:text-cyan-400">
                 <Check className="w-3.5 h-3.5" />
                 <span>{t.savedStatus}</span>
               </span>
@@ -172,14 +169,14 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
           </div>
         </div>
 
-        <div className="rounded-3xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 p-5 sm:p-6 space-y-4">
+        <div className="rounded-3xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 p-5 sm:p-6 space-y-4">
           <input
             type="text"
             value={draftTitle}
             onChange={(e) => handleTitleChange(e.target.value)}
             placeholder={t.titlePlaceholder}
             aria-label={t.titlePlaceholder}
-            className="w-full text-lg sm:text-xl font-bold bg-transparent text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none border-b border-slate-100 dark:border-slate-800 pb-3"
+            className="w-full text-lg sm:text-xl font-bold bg-transparent text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none border-b border-slate-100 dark:border-cyan-900/40 pb-3"
           />
 
           <textarea
@@ -192,7 +189,7 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
           />
 
           {activeNote && (
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+            <div className="pt-3 border-t border-slate-100 dark:border-cyan-900/40 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
               <span>
                 {t.createdLabel}: {formatTimestamp(activeNote.createdAt)}
               </span>
@@ -209,9 +206,9 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
             role="dialog"
             aria-modal="true"
             aria-labelledby="note-delete-title"
-            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#040D21]/80 backdrop-blur-sm"
           >
-            <div className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 p-6 pb-[max(1.5rem,calc(env(safe-area-inset-bottom,0px)+1rem))] space-y-4 shadow-xl">
+            <div className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/60 p-6 pb-[max(1.5rem,calc(env(safe-area-inset-bottom,0px)+1rem))] space-y-4 shadow-xl">
               <h3
                 id="note-delete-title"
                 className="text-lg font-bold text-slate-900 dark:text-white"
@@ -225,7 +222,7 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
                 <button
                   type="button"
                   onClick={() => setPendingDeleteId(null)}
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-sm font-semibold min-h-[44px]"
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-[#0D1E42] text-slate-800 dark:text-slate-200 text-sm font-semibold min-h-[44px]"
                 >
                   {t.cancelBtn}
                 </button>
@@ -250,7 +247,7 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search
-            className="w-4 h-4 text-slate-400 absolute top-1/2 -translate-y-1/2 start-3.5 pointer-events-none"
+            className="w-4 h-4 text-cyan-600 dark:text-cyan-400 absolute top-1/2 -translate-y-1/2 start-3.5 pointer-events-none"
             aria-hidden="true"
           />
           <input
@@ -259,7 +256,7 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t.searchPlaceholder}
             aria-label={t.searchPlaceholder}
-            className="w-full h-12 ps-10 pe-10 rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="w-full h-12 ps-10 pe-10 rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
           />
           {searchQuery && (
             <button
@@ -276,7 +273,7 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
         <button
           type="button"
           onClick={handleCreateNew}
-          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shrink-0 min-h-[48px] transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-[#040D21] text-sm font-bold shrink-0 min-h-[48px] transition-colors shadow-sm shadow-cyan-500/20"
         >
           <Plus className="w-4 h-4" />
           <span>{t.newNoteBtn}</span>
@@ -284,7 +281,7 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
       </div>
 
       {notes.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 p-8 text-center space-y-2">
+        <div className="rounded-3xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 p-8 text-center space-y-2">
           <p className="text-base font-bold text-slate-900 dark:text-white">
             {t.emptyTitle}
           </p>
@@ -293,7 +290,7 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
           </p>
         </div>
       ) : filteredNotes.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 p-8 text-center">
+        <div className="rounded-3xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 p-8 text-center">
           <p className="text-sm text-slate-500 dark:text-slate-400">
             {t.noMatch}
           </p>
@@ -303,7 +300,7 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
           {filteredNotes.map((note) => (
             <div
               key={note.id}
-              className="rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 p-4 flex flex-col justify-between gap-3"
+              className="rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 p-4 flex flex-col justify-between gap-3 hover:border-cyan-500/50 transition-colors"
             >
               <button
                 type="button"
@@ -318,7 +315,7 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
                 </p>
               </button>
 
-              <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+              <div className="pt-2.5 border-t border-slate-100 dark:border-cyan-900/40 flex items-center justify-between gap-2">
                 <div className="text-[11px] text-slate-500 dark:text-slate-400 min-w-0 truncate">
                   {t.modifiedLabel}: {formatTimestamp(note.updatedAt)}
                 </div>
@@ -327,7 +324,7 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
                     type="button"
                     onClick={() => handleOpenEdit(note)}
                     aria-label={t.editBtn}
-                    className="min-w-[38px] min-h-[38px] flex items-center justify-center rounded-xl text-blue-600 dark:text-sky-400 hover:bg-blue-50 dark:hover:bg-slate-800"
+                    className="min-w-[38px] min-h-[38px] flex items-center justify-center rounded-xl text-cyan-700 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-[#102247]"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
@@ -352,9 +349,9 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="note-list-delete-title"
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#040D21]/80 backdrop-blur-sm"
         >
-          <div className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 p-6 pb-[max(1.5rem,calc(env(safe-area-inset-bottom,0px)+1rem))] space-y-4 shadow-xl">
+          <div className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/60 p-6 pb-[max(1.5rem,calc(env(safe-area-inset-bottom,0px)+1rem))] space-y-4 shadow-xl">
             <h3
               id="note-list-delete-title"
               className="text-lg font-bold text-slate-900 dark:text-white"
@@ -368,7 +365,7 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
               <button
                 type="button"
                 onClick={() => setPendingDeleteId(null)}
-                className="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-sm font-semibold min-h-[44px]"
+                className="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-[#0D1E42] text-slate-800 dark:text-slate-200 text-sm font-semibold min-h-[44px]"
               >
                 {t.cancelBtn}
               </button>

@@ -136,9 +136,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     return (
       <div
         dir={language === 'ur' ? 'rtl' : 'ltr'}
-        className="min-h-[100dvh] bg-[#F6F9FC] dark:bg-[#0B1120] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 gap-4"
+        className="min-h-[100dvh] bg-[#F2F6FC] dark:bg-[#040D21] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 gap-4"
       >
-        <div className="w-10 h-10 rounded-full border-4 border-blue-200 dark:border-slate-700 border-t-[#0B6FF2] animate-spin" />
+        <div className="w-10 h-10 rounded-full border-4 border-cyan-200 dark:border-cyan-900/50 border-t-cyan-500 animate-spin" />
         <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
           {tAdmin.verifyingAccess}
         </p>
@@ -164,13 +164,13 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     return (
       <div
         dir={language === 'ur' ? 'rtl' : 'ltr'}
-        className="min-h-[100dvh] bg-[#F6F9FC] dark:bg-[#0B1120] text-slate-900 dark:text-slate-100 flex flex-col px-4 py-6 sm:px-6 safe-app-main"
+        className="min-h-[100dvh] bg-[#F2F6FC] dark:bg-[#040D21] text-slate-900 dark:text-slate-100 flex flex-col px-4 py-6 sm:px-6 safe-app-main"
       >
         <div className="max-w-lg w-full mx-auto flex items-center justify-between gap-3 mb-6">
           <button
             type="button"
             onClick={onExit}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 min-h-[44px]"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 min-h-[44px]"
           >
             <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
             <span>{tAdmin.backToApp}</span>
@@ -178,7 +178,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         </div>
 
         <div className="flex-1 flex items-center justify-center">
-          <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-[#131C31] border border-red-200 dark:border-red-900/70 p-6 sm:p-8 space-y-5 shadow-sm">
+          <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-[#0B1836] border border-red-200 dark:border-red-900/70 p-6 sm:p-8 space-y-5 shadow-sm">
             <div className="flex items-start gap-3.5">
               <span className="w-11 h-11 rounded-2xl bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
                 <ShieldAlert className="w-6 h-6" />
@@ -199,19 +199,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               </p>
             )}
 
-            <div className="rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 p-4 space-y-2">
+            <div className="rounded-2xl bg-slate-50 dark:bg-[#061026] border border-slate-200 dark:border-cyan-900/50 p-4 space-y-2">
               <div className="flex items-center justify-between gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
                 <span>{tAdmin.unauthorized.uidLabel}</span>
                 {user.email && <span className="truncate">{user.email}</span>}
               </div>
               <div className="flex items-center justify-between gap-2">
-                <code className="text-xs font-mono text-slate-900 dark:text-slate-100 break-all">
+                <code className="text-xs font-mono text-slate-900 dark:text-cyan-200 break-all">
                   {user.uid}
                 </code>
                 <button
                   type="button"
                   onClick={() => void handleCopyUid(user.uid)}
-                  className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 min-h-[36px]"
+                  className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white dark:bg-[#0D1E42] border border-slate-200 dark:border-cyan-900/50 text-xs font-semibold text-slate-700 dark:text-slate-200 min-h-[36px]"
                 >
                   <Copy className="w-3.5 h-3.5" />
                   <span>
@@ -230,7 +230,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             <button
               type="button"
               onClick={() => void signOutAdmin()}
-              className="w-full min-h-[46px] px-4 py-2.5 rounded-xl bg-[#0B6FF2] hover:bg-blue-700 text-white text-sm font-semibold inline-flex items-center justify-center gap-2 transition-colors"
+              className="w-full min-h-[46px] px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-[#040D21] text-sm font-bold inline-flex items-center justify-center gap-2 transition-colors"
             >
               <LogOut className="w-4 h-4" />
               <span>{tAdmin.unauthorized.switchAccountBtn}</span>
@@ -254,17 +254,17 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   return (
     <div
       dir={language === 'ur' ? 'rtl' : 'ltr'}
-      className="min-h-[100dvh] bg-[#F6F9FC] dark:bg-[#0B1120] text-slate-900 dark:text-slate-100 flex flex-col"
+      className="min-h-[100dvh] bg-[#F2F6FC] dark:bg-[#040D21] text-slate-900 dark:text-slate-100 flex flex-col"
     >
       {/* Dedicated Top Bar (separate from consumer BottomNav) */}
-      <header className="sticky top-0 z-30 bg-white/95 dark:bg-[#0F172A]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+      <header className="sticky top-0 z-30 bg-white/95 dark:bg-[#061026]/95 backdrop-blur-md border-b border-slate-200 dark:border-cyan-900/50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
               onClick={onExit}
               aria-label={tAdmin.backToApp}
-              className="min-w-[44px] min-h-[44px] rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 transition-colors shrink-0"
+              className="min-w-[44px] min-h-[44px] rounded-xl bg-slate-100 dark:bg-[#0D1E42] hover:bg-slate-200 dark:hover:bg-[#132959] flex items-center justify-center text-slate-700 dark:text-cyan-300 transition-colors shrink-0"
             >
               <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
             </button>
@@ -290,7 +290,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               type="button"
               disabled={loadingData}
               onClick={() => void loadSnapshot()}
-              className="min-h-[40px] px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-60 text-xs font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition-colors"
+              className="min-h-[40px] px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#0D1E42] hover:bg-slate-200 dark:hover:bg-[#132959] disabled:opacity-60 text-xs font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition-colors"
             >
               <RefreshCw
                 className={`w-3.5 h-3.5 ${loadingData ? 'animate-spin' : ''}`}
@@ -301,7 +301,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             <button
               type="button"
               onClick={() => void signOutAdmin()}
-              className="min-h-[40px] px-3 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/70 text-xs font-semibold text-[#0B6FF2] dark:text-sky-400 inline-flex items-center gap-1.5 transition-colors"
+              className="min-h-[40px] px-3 py-2 rounded-xl bg-cyan-50 dark:bg-cyan-500/15 hover:bg-cyan-100 dark:hover:bg-cyan-500/25 border border-transparent dark:border-cyan-500/30 text-xs font-semibold text-cyan-700 dark:text-cyan-300 inline-flex items-center gap-1.5 transition-colors"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>{tAdmin.signOut}</span>
@@ -310,7 +310,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         </div>
 
         {/* Section Tabs */}
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 border-t border-slate-100 dark:border-slate-800/80 overflow-x-auto">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 border-t border-slate-100 dark:border-cyan-900/40 overflow-x-auto">
           <nav
             aria-label="Admin Sections"
             className="flex items-center gap-1.5 py-2 min-w-max"
@@ -325,8 +325,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                   data-testid={`admin-tab-${id}`}
                   className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap min-h-[40px] transition-colors ${
                     active
-                      ? 'bg-[#0B6FF2] text-white shadow-sm'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      ? 'bg-cyan-500 text-[#040D21] font-bold shadow-sm shadow-cyan-500/20'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#0D1E42]'
                   }`}
                 >
                   <Icon className="w-4 h-4 shrink-0" />
@@ -345,7 +345,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             role={banner.type === 'error' ? 'alert' : 'status'}
             className={`rounded-2xl p-3.5 sm:p-4 border flex items-start justify-between gap-3 text-xs sm:text-sm ${
               banner.type === 'success'
-                ? 'bg-teal-50 dark:bg-teal-950/40 border-teal-200 dark:border-teal-900/60 text-teal-800 dark:text-teal-200'
+                ? 'bg-cyan-50 dark:bg-cyan-950/40 border-cyan-200 dark:border-cyan-800/60 text-cyan-800 dark:text-cyan-200'
                 : 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900/60 text-red-700 dark:text-red-300'
             }`}
           >

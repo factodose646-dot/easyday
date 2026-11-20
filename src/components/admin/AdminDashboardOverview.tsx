@@ -53,7 +53,7 @@ export const AdminDashboardOverview: React.FC<AdminDashboardOverviewProps> = ({
       meta: `${liveAds} ${tAdmin.overview.liveSuffix}`,
       targetTab: 'globalAds',
       accentClass:
-        'bg-blue-50 dark:bg-blue-950/60 text-[#0B6FF2] dark:text-sky-400',
+        'bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-cyan-300',
       Icon: MonitorPlay,
     },
     {
@@ -63,7 +63,7 @@ export const AdminDashboardOverview: React.FC<AdminDashboardOverviewProps> = ({
       meta: 'active + published',
       targetTab: 'globalAds',
       accentClass:
-        'bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400',
+        'bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-yellow-400',
       Icon: CheckCircle2,
     },
     {
@@ -73,7 +73,7 @@ export const AdminDashboardOverview: React.FC<AdminDashboardOverviewProps> = ({
       meta: tAdmin.ads.mediaTypeImage,
       targetTab: 'globalAds',
       accentClass:
-        'bg-sky-50 dark:bg-sky-950/60 text-[#0B6FF2] dark:text-sky-400',
+        'bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-cyan-300',
       Icon: ImageIcon,
     },
     {
@@ -83,7 +83,7 @@ export const AdminDashboardOverview: React.FC<AdminDashboardOverviewProps> = ({
       meta: tAdmin.ads.mediaTypeVideo,
       targetTab: 'globalAds',
       accentClass:
-        'bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400',
+        'bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-cyan-300',
       Icon: Film,
     },
     {
@@ -93,7 +93,7 @@ export const AdminDashboardOverview: React.FC<AdminDashboardOverviewProps> = ({
       meta: `${tAdmin.ads.statusInactive} / ${tAdmin.ads.statusUnpublished}`,
       targetTab: 'globalAds',
       accentClass:
-        'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400',
+        'bg-yellow-50 dark:bg-yellow-400/15 text-amber-600 dark:text-yellow-400',
       Icon: EyeOff,
     },
     {
@@ -103,8 +103,8 @@ export const AdminDashboardOverview: React.FC<AdminDashboardOverviewProps> = ({
       meta: snapshot.announcement?.title || 'settings/announcement',
       targetTab: 'announcement',
       accentClass: snapshot.announcement?.active
-        ? 'bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400'
-        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300',
+        ? 'bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-cyan-300'
+        : 'bg-slate-100 dark:bg-[#0D1E42] text-slate-600 dark:text-slate-300',
       Icon: Megaphone,
     },
   ];
@@ -128,7 +128,7 @@ export const AdminDashboardOverview: React.FC<AdminDashboardOverviewProps> = ({
               key={key}
               type="button"
               onClick={() => onNavigateTab(targetTab)}
-              className="text-start rounded-2xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 hover:border-[#0B6FF2] dark:hover:border-sky-500 p-5 space-y-3 transition-colors"
+              className="text-start rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 hover:border-cyan-500 dark:hover:border-cyan-400 p-5 space-y-3 transition-colors"
             >
               <div className="flex items-center justify-between gap-3">
                 <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
@@ -155,20 +155,20 @@ export const AdminDashboardOverview: React.FC<AdminDashboardOverviewProps> = ({
 
       {/* Management Section Shortcuts */}
       <section className="space-y-3">
-        <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">
+        <h3 className="text-sm font-bold text-slate-700 dark:text-cyan-300">
           {tAdmin.overview.quickActionsTitle}
         </h3>
 
-        <div className="rounded-3xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden">
+        <div className="rounded-3xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 divide-y divide-slate-100 dark:divide-cyan-900/40 overflow-hidden">
           <button
             type="button"
             onClick={() => onNavigateTab('globalAds')}
-            className="w-full px-5 py-4 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-start transition-colors min-h-[56px]"
+            className="w-full px-5 py-4 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-[#102247] text-start transition-colors min-h-[56px]"
           >
             <span className="text-sm font-semibold text-slate-900 dark:text-white">
               {tAdmin.overview.manageGlobalAds}
             </span>
-            <span className="flex items-center gap-2.5 text-xs font-medium text-slate-500 dark:text-slate-400 shrink-0 tabular-nums">
+            <span className="flex items-center gap-2.5 text-xs font-medium text-slate-500 dark:text-cyan-300 shrink-0 tabular-nums">
               <span>
                 {liveAds}/{totalAds}
               </span>
@@ -179,12 +179,12 @@ export const AdminDashboardOverview: React.FC<AdminDashboardOverviewProps> = ({
           <button
             type="button"
             onClick={() => onNavigateTab('announcement')}
-            className="w-full px-5 py-4 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-start transition-colors min-h-[56px]"
+            className="w-full px-5 py-4 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-[#102247] text-start transition-colors min-h-[56px]"
           >
             <span className="text-sm font-semibold text-slate-900 dark:text-white">
               {tAdmin.overview.manageAnnouncement}
             </span>
-            <span className="flex items-center gap-2.5 text-xs font-medium text-slate-500 dark:text-slate-400 shrink-0">
+            <span className="flex items-center gap-2.5 text-xs font-medium text-slate-500 dark:text-cyan-300 shrink-0">
               <span>{announcementStatusText}</span>
               <ArrowRight className="w-4 h-4 rtl:rotate-180" />
             </span>
@@ -193,8 +193,8 @@ export const AdminDashboardOverview: React.FC<AdminDashboardOverviewProps> = ({
       </section>
 
       {/* Active Security Enforcement Summary */}
-      <section className="rounded-2xl bg-teal-50/70 dark:bg-teal-950/30 border border-teal-200/80 dark:border-teal-900/60 p-4 flex items-start gap-3">
-        <ShieldCheck className="w-5 h-5 text-teal-600 dark:text-teal-400 shrink-0 mt-0.5" />
+      <section className="rounded-2xl bg-cyan-50/70 dark:bg-[#0B1836] border border-cyan-200/80 dark:border-cyan-500/35 p-4 flex items-start gap-3">
+        <ShieldCheck className="w-5 h-5 text-cyan-700 dark:text-cyan-400 shrink-0 mt-0.5" />
         <div className="space-y-0.5 text-xs sm:text-sm">
           <p className="font-bold text-slate-900 dark:text-white">
             {tAdmin.overview.securityChecklistTitle}

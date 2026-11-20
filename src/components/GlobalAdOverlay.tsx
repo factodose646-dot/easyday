@@ -43,7 +43,7 @@ export const GlobalAdOverlay: React.FC<GlobalAdOverlayProps> = ({
       aria-labelledby="global-ad-title"
       dir={isUrdu ? 'rtl' : 'ltr'}
       data-testid="global-ad-overlay"
-      className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md text-white flex flex-col justify-between"
+      className="fixed inset-0 z-50 bg-[#040D21]/95 backdrop-blur-md text-white flex flex-col justify-between"
       style={{
         paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))',
         paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom, 0px))',
@@ -77,7 +77,7 @@ export const GlobalAdOverlay: React.FC<GlobalAdOverlayProps> = ({
       {/* Center Media Container (never distorted) */}
       <div className="flex-1 min-h-0 max-w-3xl w-full mx-auto flex items-center justify-center py-2">
         {mediaError ? (
-          <div className="w-full h-full max-h-[55dvh] rounded-3xl bg-gradient-to-br from-[#0B6FF2]/30 via-slate-900 to-[#0D9488]/30 border border-white/10 flex flex-col items-center justify-center p-8 text-center gap-3">
+          <div className="w-full h-full max-h-[55dvh] rounded-3xl bg-gradient-to-br from-[#06122E] via-[#0B1F4D] to-[#0E316C] border border-cyan-500/30 flex flex-col items-center justify-center p-8 text-center gap-3">
             <span className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center text-sky-300">
               {ad.mediaType === 'video' ? (
                 <VideoOff className="w-7 h-7" />
@@ -131,7 +131,7 @@ export const GlobalAdOverlay: React.FC<GlobalAdOverlayProps> = ({
           <button
             type="button"
             onClick={onDismiss}
-            className="sm:self-end shrink-0 px-5 py-2.5 rounded-xl bg-[#0B6FF2] hover:bg-blue-600 text-white text-xs sm:text-sm font-semibold min-h-[44px] transition-colors whitespace-nowrap"
+            className="sm:self-end shrink-0 px-5 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-[#040D21] text-xs sm:text-sm font-bold min-h-[44px] transition-colors whitespace-nowrap"
           >
             {skipLabel}
           </button>

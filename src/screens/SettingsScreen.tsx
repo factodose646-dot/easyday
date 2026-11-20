@@ -61,7 +61,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           {t.settings.preferencesSection}
         </h2>
 
-        <div className="rounded-3xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden">
+        <div className="rounded-3xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-[#1B315E] divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden">
           {/* Language Selection */}
           <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3.5">
@@ -81,7 +81,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             <div
               role="group"
               aria-label={t.settings.languageLabel}
-              className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/90 shrink-0"
+              className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-[#061026] shrink-0"
             >
               <button
                 type="button"
@@ -89,7 +89,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 aria-pressed={language === 'en'}
                 className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition-colors min-h-[40px] whitespace-nowrap ${
                   language === 'en'
-                    ? 'bg-blue-600 text-white shadow-sm'
+                    ? 'bg-cyan-500 text-[#040D21] shadow-sm'
                     : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -101,7 +101,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 aria-pressed={language === 'ur'}
                 className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition-colors min-h-[40px] whitespace-nowrap ${
                   language === 'ur'
-                    ? 'bg-blue-600 text-white shadow-sm'
+                    ? 'bg-cyan-500 text-[#040D21] shadow-sm'
                     : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -133,7 +133,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             <div
               role="group"
               aria-label={t.settings.themeLabel}
-              className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/90 shrink-0"
+              className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-[#061026] shrink-0"
             >
               <button
                 type="button"
@@ -141,7 +141,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 aria-pressed={theme === 'light'}
                 className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold transition-colors min-h-[40px] whitespace-nowrap ${
                   theme === 'light'
-                    ? 'bg-blue-600 text-white shadow-sm'
+                    ? 'bg-cyan-500 text-[#040D21] shadow-sm'
                     : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -154,7 +154,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 aria-pressed={theme === 'dark'}
                 className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold transition-colors min-h-[40px] whitespace-nowrap ${
                   theme === 'dark'
-                    ? 'bg-blue-600 text-white shadow-sm'
+                    ? 'bg-cyan-500 text-[#040D21] shadow-sm'
                     : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -175,9 +175,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           {t.settings.adminSection}
         </h2>
 
-        <div className="rounded-3xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="rounded-3xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-[#1B315E] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3.5">
-            <span className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#0B6FF2] dark:text-sky-400 flex items-center justify-center shrink-0">
+            <span className="w-10 h-10 rounded-xl bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-yellow-400 flex items-center justify-center shrink-0">
               <Lock className="w-5 h-5" />
             </span>
             <div>
@@ -194,7 +194,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             type="button"
             onClick={onOpenAdminPanel}
             data-testid="open-admin-panel-btn"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0B6FF2] hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold transition-colors min-h-[44px] shrink-0 whitespace-nowrap"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-[#040D21] text-xs sm:text-sm font-bold transition-colors min-h-[44px] shrink-0 whitespace-nowrap"
           >
             <Lock className="w-4 h-4 shrink-0" />
             <span>{t.settings.openAdminBtn}</span>
@@ -212,7 +212,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           {t.settings.aboutSection}
         </h2>
 
-        <div className="rounded-3xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden">
+        <div className="rounded-3xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-[#1B315E] divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden">
           {/* About EasyDay */}
           <div className="p-5 space-y-4">
             <div className="flex items-start gap-3.5">
@@ -318,7 +318,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           aria-labelledby="privacy-modal-title"
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/60 backdrop-blur-sm"
         >
-          <div className="w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl bg-white dark:bg-[#131C31] border border-slate-200 dark:border-slate-800 p-6 pb-[max(1.5rem,calc(env(safe-area-inset-bottom,0px)+1rem))] space-y-4 shadow-xl max-h-[85dvh] overflow-y-auto">
+          <div className="w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-[#1B315E] p-6 pb-[max(1.5rem,calc(env(safe-area-inset-bottom,0px)+1rem))] space-y-4 shadow-xl max-h-[85dvh] overflow-y-auto">
             <div className="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 mx-auto sm:hidden" />
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
@@ -348,7 +348,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               <button
                 type="button"
                 onClick={() => setPrivacyOpen(false)}
-                className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors min-h-[44px]"
+                className="w-full py-2.5 px-4 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-[#040D21] text-sm font-bold transition-colors min-h-[44px]"
               >
                 {t.settings.closeBtn}
               </button>

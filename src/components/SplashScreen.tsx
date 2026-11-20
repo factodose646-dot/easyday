@@ -108,12 +108,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
       <div className="relative z-10 splash-safe-frame max-w-md mx-auto w-full flex flex-col justify-between gap-4">
         {/* Top Zone: Badge (+ Close action in previewMode) */}
         <div className="relative flex items-center justify-center pt-1 min-h-[44px]">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-amber-400/35 bg-[#0A1A38]/80 backdrop-blur-sm">
-            <span
-              className="w-2 h-2 rounded-full bg-[#FACC15] shrink-0"
-              aria-hidden="true"
-            />
-            <span className="text-[10px] sm:text-[11px] font-semibold tracking-[0.18em] text-slate-100 whitespace-nowrap">
+          <div className="inline-flex items-center px-4 py-1.5 rounded-full border border-cyan-400/40 bg-[#0A1A38]/85 backdrop-blur-sm">
+            <span className="text-[10px] sm:text-[11px] font-semibold tracking-[0.18em] text-cyan-100 whitespace-nowrap">
               DAILY LIFE COMPANION
             </span>
           </div>
