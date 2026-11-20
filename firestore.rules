@@ -1,0 +1,115 @@
+rules_version = '2';
+
+// EasyDay / ZAIDI STORE — Minimal Firestore Security Rules Proposal
+// Project: easyday-13712
+//
+// Security Guarantees:
+// 1. Default-deny catch-all at root.
+// 2. Public users may ONLY read `globalAds` documents where active == true && published == true.
+// 3. Public users may ONLY read `settings/announcement` when active == true.
+// 4. Ordinary authenticated users CANNOT read inactive/unpublished ads, CANNOT write ads
+//    or announcements, and CANNOT elevate privileges in /admins/{uid}.
+// 5. Only trusted UIDs listed in /admins/{uid} with active == true can read all ads
+//    and create, update, publish/unpublish, activate/deactivate, or delete ads.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isAuthorizedAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.active == true;
+    }
+
+    function isNonEmptyBoundedString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isValidHttpsMediaUrl(val) {
+      return val is string
+        && val.size() >= 10
+        && val.size() <= 500
+        && val.matches('^https://.+');
+    }
+
+    // -------------------------------------------------------------------------
+    // Entity Payload Validators
+    // -------------------------------------------------------------------------
+    function isValidGlobalAd(data) {
+      return data.keys().hasAll(['title', 'description', 'mediaType', 'mediaUrl', 'active', 'published', 'updatedAt'])
+        && data.keys().hasOnly(['title', 'description', 'mediaType', 'mediaUrl', 'active', 'published', 'createdAt', 'updatedAt'])
+        && isNonEmptyBoundedString(data.title, 2, 120)
+        && isNonEmptyBoundedString(data.description, 2, 1000)
+        && (data.mediaType == 'image' || data.mediaType == 'video')
+        && isValidHttpsMediaUrl(data.mediaUrl)
+        && data.active is bool
+        && data.published is bool
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAnnouncement(data) {
+      return data.keys().hasAll(['title', 'message', 'active', 'updatedAt'])
+        && data.keys().hasOnly(['title', 'message', 'active', 'updatedAt'])
+        && isNonEmptyBoundedString(data.title, 2, 120)
+        && isNonEmptyBoundedString(data.message, 2, 1000)
+        && data.active is bool
+        && data.updatedAt is timestamp;
+    }
+
+    // -------------------------------------------------------------------------
+    // Trusted Admin Allowlist (Firebase Console / Admin SDK Managed Only)
+    // -------------------------------------------------------------------------
+    match /admins/{adminUid} {
+      allow get: if isSignedIn() && request.auth.uid == adminUid;
+      allow list, create, update, delete: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // Global In-App Advertisements Collection
+    // -------------------------------------------------------------------------
+    match /globalAds/{adId} {
+      allow read: if (resource.data.active == true && resource.data.published == true)
+        || isAuthorizedAdmin();
+      allow create: if isValidId(adId)
+        && isAuthorizedAdmin()
+        && isValidGlobalAd(request.resource.data)
+        && request.resource.data.keys().hasAll(['createdAt'])
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if isValidId(adId)
+        && isAuthorizedAdmin()
+        && isValidGlobalAd(request.resource.data)
+        && (!('createdAt' in resource.data) || request.resource.data.createdAt == resource.data.createdAt)
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if isValidId(adId) && isAuthorizedAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // App Announcement Document
+    // -------------------------------------------------------------------------
+    match /settings/announcement {
+      allow get: if (resource != null && resource.data.active == true) || isAuthorizedAdmin();
+      allow list: if isAuthorizedAdmin();
+      allow create, update: if isAuthorizedAdmin()
+        && isValidAnnouncement(request.resource.data)
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if isAuthorizedAdmin();
+    }
+  }
+}

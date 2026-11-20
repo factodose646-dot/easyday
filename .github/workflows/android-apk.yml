@@ -1,0 +1,168 @@
+name: Build EasyDay Android APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-android-apk:
+    name: Build EasyDay-1.0.0.apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout EasyDay repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up Bun 1.4.4
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.4'
+
+      - name: Cache Bun packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Verify existing lockfile and install dependencies
+        run: |
+          if [ ! -f bun.lock ]; then
+            echo "::error::Expected lockfile bun.lock was not found in repository root."
+            exit 1
+          fi
+          bun install --frozen-lockfile
+
+      - name: Run TypeScript checks
+        run: npm run lint
+
+      - name: Build production Vite web bundle
+        run: npm run build
+
+      - name: Verify Android project and Capacitor configuration
+        run: |
+          if [ ! -f capacitor.config.ts ]; then
+            echo "::error::capacitor.config.ts is missing from repository root."
+            exit 1
+          fi
+          if [ ! -f android/app/build.gradle ]; then
+            echo "::error::android/app/build.gradle is missing. Run 'npx cap add android' and commit the android/ folder."
+            exit 1
+          fi
+          if ! grep -q 'applicationId "com.zaidiinteractive.easyday"' android/app/build.gradle; then
+            echo "::error::android/app/build.gradle does not configure expected applicationId com.zaidiinteractive.easyday."
+            exit 1
+          fi
+
+      - name: Sync web assets with Capacitor Android
+        run: npx cap sync android
+
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools platforms;android-36 build-tools;35.0.0 build-tools;36.0.0
+          accept-android-sdk-licenses: true
+          log-accepted-android-sdk-licenses: false
+
+      - name: Cache Gradle packages and build outputs
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build Android APK with Gradle
+        id: gradle_apk
+        env:
+          EASYDAY_KEYSTORE_BASE64: ${{ secrets.EASYDAY_KEYSTORE_BASE64 }}
+          EASYDAY_KEYSTORE_PASSWORD: ${{ secrets.EASYDAY_KEYSTORE_PASSWORD }}
+          EASYDAY_KEY_ALIAS: ${{ secrets.EASYDAY_KEY_ALIAS }}
+          EASYDAY_KEY_PASSWORD: ${{ secrets.EASYDAY_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist-apk
+          cd android
+          chmod +x ./gradlew
+
+          if [ -n "${EASYDAY_KEYSTORE_BASE64:-}" ] && [ -n "${EASYDAY_KEYSTORE_PASSWORD:-}" ] && [ -n "${EASYDAY_KEY_ALIAS:-}" ] && [ -n "${EASYDAY_KEY_PASSWORD:-}" ]; then
+            echo "Release signing secrets detected. Building signed Release APK..."
+            KEYSTORE_TMP="${RUNNER_TEMP}/easyday-release.jks"
+            printf '%s' "${EASYDAY_KEYSTORE_BASE64}" | base64 --decode > "${KEYSTORE_TMP}"
+            export EASYDAY_KEYSTORE_PATH="${KEYSTORE_TMP}"
+            ./gradlew assembleRelease --no-daemon
+
+            RAW_APK="app/build/outputs/apk/release/app-release.apk"
+            if [ ! -s "${RAW_APK}" ]; then
+              echo "::error::Release APK was not produced at android/${RAW_APK}."
+              exit 1
+            fi
+            cp "${RAW_APK}" ../dist-apk/EasyDay-1.0.0.apk
+            rm -f "${KEYSTORE_TMP}"
+            echo "apk_type=Signed Release APK (Production)" >> "$GITHUB_OUTPUT"
+          else
+            echo "Permanent release signing secrets not configured yet. Building standard Debug APK for testing..."
+            ./gradlew assembleDebug --no-daemon
+
+            RAW_APK="app/build/outputs/apk/debug/app-debug.apk"
+            if [ ! -s "${RAW_APK}" ]; then
+              echo "::error::Debug APK was not produced at android/${RAW_APK}."
+              exit 1
+            fi
+            cp "${RAW_APK}" ../dist-apk/EasyDay-1.0.0.apk
+            echo "apk_type=Debug APK (Testing Build — configure release keystore secrets for production Release signing)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify APK file, size, checksum, and package metadata
+        run: |
+          set -euo pipefail
+          APK_PATH="dist-apk/EasyDay-1.0.0.apk"
+          if [ ! -f "${APK_PATH}" ] || [ ! -s "${APK_PATH}" ]; then
+            echo "::error::Final APK ${APK_PATH} is missing or empty."
+            exit 1
+          fi
+
+          AAPT2_BIN=$(find "${ANDROID_HOME}/build-tools" -maxdepth 2 -name aapt2 2>/dev/null | sort -V | tail -n 1 || true)
+          if [ -n "${AAPT2_BIN}" ] && [ -x "${AAPT2_BIN}" ]; then
+            BADGING=$("${AAPT2_BIN}" dump badging "${APK_PATH}")
+            echo "${BADGING}" | grep -E "^(package:|application-label:|uses-permission:|sdkVersion:|targetSdkVersion:)"
+            if ! echo "${BADGING}" | grep -q "name='com.zaidiinteractive.easyday'"; then
+              echo "::error::APK package ID does not match com.zaidiinteractive.easyday."
+              exit 1
+            fi
+          fi
+
+          APK_BYTES=$(stat -c "%s" "${APK_PATH}")
+          APK_SHA256=$(sha256sum "${APK_PATH}" | awk '{print $1}')
+
+          {
+            echo "## EasyDay Android APK Build Summary"
+            echo "- **Build Type**: ${{ steps.gradle_apk.outputs.apk_type }}"
+            echo "- **Artifact Name**: \`EasyDay-Android-APK\`"
+            echo "- **APK Filename**: \`EasyDay-1.0.0.apk\`"
+            echo "- **Application ID**: \`com.zaidiinteractive.easyday\`"
+            echo "- **File Size**: \`${APK_BYTES} bytes\`"
+            echo "- **SHA-256**: \`${APK_SHA256}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload EasyDay-Android-APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EasyDay-Android-APK
+          path: dist-apk/EasyDay-1.0.0.apk
+          if-no-files-found: error
+          retention-days: 30

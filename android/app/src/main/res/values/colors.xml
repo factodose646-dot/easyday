@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#0B6FF2</color>
+    <color name="colorPrimaryDark">#040D21</color>
+    <color name="colorAccent">#0D9488</color>
+    <color name="easyday_splash_bg">#040D21</color>
+</resources>
