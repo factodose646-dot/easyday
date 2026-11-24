@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  AlertTriangle,
   ArrowLeft,
   Check,
   Pencil,
@@ -10,14 +11,24 @@ import {
 } from 'lucide-react';
 import { ToolTranslationBundle } from '../../i18n/toolTranslations';
 import { Language } from '../../types';
-import { generateId, NoteItem, notesStorage } from '../../utils/storage';
+import {
+  generateId,
+  getStorageErrorMessage,
+  NoteItem,
+  notesStorage,
+} from '../../utils/storage';
 
 interface NotesToolProps {
   language: Language;
   t: ToolTranslationBundle['notes'];
+  quickAddNonce?: number | null;
 }
 
-export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
+export const NotesTool: React.FC<NotesToolProps> = ({
+  language,
+  t,
+  quickAddNonce = null,
+}) => {
   const [notes, setNotes] = useState<NoteItem[]>(() => notesStorage.load());
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
@@ -25,6 +36,10 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
   const [draftDesc, setDraftDesc] = useState<string>('');
   const [autoSavedAt, setAutoSavedAt] = useState<number | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [storageError, setStorageError] = useState<string | null>(null);
+  const notesRef = useRef<NoteItem[]>(notes);
+  notesRef.current = notes;
+  const lastQuickAddNonceRef = useRef<number | null>(null);
 
   const formatTimestamp = useCallback(
     (ts: number) => {
@@ -43,56 +58,75 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
     [language]
   );
 
-  useEffect(() => {
-    notesStorage.save(notes);
-  }, [notes]);
-
-  const handleCreateNew = () => {
+  const handleCreateNew = useCallback(() => {
     const newId = generateId('note');
     setEditingNoteId(newId);
     setDraftTitle('');
     setDraftDesc('');
     setAutoSavedAt(null);
-  };
+    setStorageError(null);
+  }, []);
+
+  useEffect(() => {
+    if (!quickAddNonce) return;
+    if (lastQuickAddNonceRef.current === quickAddNonce) return;
+    lastQuickAddNonceRef.current = quickAddNonce;
+    handleCreateNew();
+  }, [quickAddNonce, handleCreateNew]);
 
   const handleOpenEdit = (note: NoteItem) => {
     setEditingNoteId(note.id);
     setDraftTitle(note.title);
     setDraftDesc(note.description);
     setAutoSavedAt(note.updatedAt);
+    setStorageError(null);
   };
 
   const upsertDraft = useCallback(
     (id: string, titleVal: string, descVal: string) => {
       const now = Date.now();
       const hasContent = titleVal.trim().length > 0 || descVal.trim().length > 0;
+      const current = notesRef.current;
+      const exists = current.some((n) => n.id === id);
 
-      setNotes((prev) => {
-        const exists = prev.some((n) => n.id === id);
-        if (!exists && !hasContent) {
-          return prev;
-        }
-        if (exists) {
-          return prev.map((n) =>
+      if (!exists && !hasContent) {
+        return;
+      }
+
+      const nextNotes = exists
+        ? current.map((n) =>
             n.id === id
               ? { ...n, title: titleVal, description: descVal, updatedAt: now }
               : n
-          );
-        }
-        const created: NoteItem = {
-          id,
-          title: titleVal,
-          description: descVal,
-          createdAt: now,
-          updatedAt: now,
-        };
-        return [created, ...prev];
-      });
+          )
+        : [
+            {
+              id,
+              title: titleVal,
+              description: descVal,
+              createdAt: now,
+              updatedAt: now,
+            },
+            ...current,
+          ];
+
+      const res = notesStorage.save(nextNotes);
+      if (!res.ok) {
+        setAutoSavedAt(null);
+        setStorageError(
+          getStorageErrorMessage(res.errorCode || 'UNKNOWN_STORAGE_ERROR', language)
+        );
+        return;
+      }
+
+      notesRef.current = nextNotes;
+      setNotes(nextNotes);
+      setStorageError(null);
       if (hasContent) {
         setAutoSavedAt(now);
       }
     },
-    []
+    [language]
   );
 
   const handleTitleChange = (val: string) => {
@@ -112,7 +146,19 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
   const handleConfirmDelete = () => {
     if (!pendingDeleteId) return;
     const targetId = pendingDeleteId;
-    setNotes((prev) => prev.filter((n) => n.id !== targetId));
+    const nextNotes = notesRef.current.filter((n) => n.id !== targetId);
+    const res = notesStorage.save(nextNotes);
+    if (!res.ok) {
+      setStorageError(
+        getStorageErrorMessage(res.errorCode || 'UNKNOWN_STORAGE_ERROR', language)
+      );
+      setPendingDeleteId(null);
+      return;
+    }
+
+    notesRef.current = nextNotes;
+    setNotes(nextNotes);
+    setStorageError(null);
     if (editingNoteId === targetId) {
       setEditingNoteId(null);
     }
@@ -168,6 +214,26 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
             )}
           </div>
         </div>
+
+        {storageError && (
+          <div
+            role="alert"
+            className="rounded-2xl bg-rose-500/15 border border-rose-500/40 px-4 py-3 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center justify-between gap-2"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>{storageError}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setStorageError(null)}
+              aria-label={t.cancelBtn}
+              className="min-w-[28px] min-h-[28px] flex items-center justify-center rounded-lg hover:bg-rose-500/15 shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         <div className="rounded-3xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-900/50 p-5 sm:p-6 space-y-4">
           <input
@@ -244,6 +310,25 @@ export const NotesTool: React.FC<NotesToolProps> = ({ language, t }) => {
   // Notes List View
   return (
     <div className="space-y-4">
+      {storageError && (
+        <div
+          role="alert"
+          className="rounded-2xl bg-rose-500/15 border border-rose-500/40 px-4 py-3 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center justify-between gap-2"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>{storageError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setStorageError(null)}
+            aria-label={t.cancelBtn}
+            className="min-w-[28px] min-h-[28px] flex items-center justify-center rounded-lg hover:bg-rose-500/15 shrink-0"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search

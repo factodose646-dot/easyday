@@ -54,9 +54,11 @@ export function useGlobalAdSystem({
   const lastInteractionAtRef = useRef<number>(0);
   const activeUsageMsRef = useRef<number>(0);
   const isAppActiveRef = useRef<boolean>(true);
+  const lastFeedFetchAtRef = useRef<number>(0);
   const persistedRef = useRef<PersistedAdState>(loadPersistedAdState());
 
   const loadFeed = useCallback(async () => {
+    lastFeedFetchAtRef.current = Date.now();
     const [adsResult, announcementResult] = await Promise.allSettled([
       fetchEligibleGlobalAds(),
       fetchActiveAnnouncement(),
@@ -70,6 +72,16 @@ export function useGlobalAdSystem({
     }
     setAdsLoaded(true);
   }, []);
+
+  const refreshFeedIfStale = useCallback(() => {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      return;
+    }
+    if (Date.now() - lastFeedFetchAtRef.current < 60_000) {
+      return;
+    }
+    void loadFeed();
+  }, [loadFeed]);
 
   // Pre-fetch ads and announcement during app startup so launch display is instant or skipped cleanly
   useEffect(() => {
@@ -211,7 +223,7 @@ export function useGlobalAdSystem({
       const visible = document.visibilityState === 'visible';
       isAppActiveRef.current = visible;
       if (visible && isReady && !isBlockedContext) {
-        void loadFeed();
+        refreshFeedIfStale();
       }
     };
 
@@ -219,7 +231,7 @@ export function useGlobalAdSystem({
     const cleanupNativeState = registerAndroidAppStateChange((isActive) => {
       isAppActiveRef.current = isActive;
       if (isActive && isReady && !isBlockedContext) {
-        void loadFeed();
+        refreshFeedIfStale();
       }
     });
 
@@ -227,7 +239,7 @@ export function useGlobalAdSystem({
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       cleanupNativeState();
     };
-  }, [isBlockedContext, isReady, loadFeed]);
+  }, [isBlockedContext, isReady, refreshFeedIfStale]);
 
   const dismissActiveAd = useCallback(() => {
     const now = Date.now();

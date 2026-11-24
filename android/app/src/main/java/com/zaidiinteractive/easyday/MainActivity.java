@@ -8,6 +8,8 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(PdfExportPlugin.class);
         registerPlugin(BillReminderPlugin.class);
+        registerPlugin(DataBackupPlugin.class);
+        registerPlugin(AppSecurityPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

@@ -4,6 +4,7 @@ import {
   CalendarDays,
   HandCoins,
   NotebookPen,
+  Users,
   Wallet,
 } from 'lucide-react';
 import { ToolId } from '../types';
@@ -35,6 +36,11 @@ const ICON_MAP: Record<
     Icon: Wallet,
     bgClass: 'bg-orange-500',
     textClass: 'text-white',
+  },
+  'kameti-manager': {
+    Icon: Users,
+    bgClass: 'bg-teal-400',
+    textClass: 'text-[#040D21]',
   },
   notes: {
     Icon: NotebookPen,

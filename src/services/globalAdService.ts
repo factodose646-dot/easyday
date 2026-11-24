@@ -54,6 +54,29 @@ function asTrimmedString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
 }
 
+const FIRESTORE_PUBLIC_READ_TIMEOUT_MS = 8000;
+
+function withFirestoreTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs = FIRESTORE_PUBLIC_READ_TIMEOUT_MS
+): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = globalThis.setTimeout(() => {
+      reject(new Error('Firestore request timed out (client offline/unreachable).'));
+    }, timeoutMs);
+    promise.then(
+      (value) => {
+        globalThis.clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        globalThis.clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
+
 function extractTimestampMs(value: unknown): number {
   if (value instanceof Timestamp) {
     return value.toMillis();
@@ -119,7 +142,7 @@ export async function fetchEligibleGlobalAds(): Promise<{
       where('active', '==', true),
       where('published', '==', true)
     );
-    const snapshot = await getDocs(q);
+    const snapshot = await withFirestoreTimeout(getDocs(q));
     const ads: GlobalAdRecord[] = [];
     snapshot.forEach((docSnap) => {
       const mapped = mapRawGlobalAd(docSnap.id, docSnap.data());
@@ -162,7 +185,9 @@ export async function fetchActiveAnnouncement(): Promise<AnnouncementRecord | nu
     return null;
   }
   try {
-    const snap = await getDoc(doc(db, 'settings', 'announcement'));
+    const snap = await withFirestoreTimeout(
+      getDoc(doc(db, 'settings', 'announcement'))
+    );
     if (!snap.exists()) return null;
     const data = snap.data();
     if (data.active !== true) return null;

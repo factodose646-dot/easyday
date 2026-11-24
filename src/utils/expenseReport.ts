@@ -8,6 +8,10 @@ import {
   shareAndroidPdf,
 } from './androidBridge';
 import {
+  isCountedAsExpense,
+  isUdhaarRepaymentTransaction,
+} from './financeSync';
+import {
   getCurrentMonthISO,
   getTodayISO,
   TransactionCategory,
@@ -30,6 +34,7 @@ export interface ExpenseReportData {
   endDate: string;
   totalIncome: number;
   totalExpense: number;
+  totalDebtRepayment: number;
   netBalance: number;
   transactionCount: number;
   incomeCount: number;
@@ -194,8 +199,11 @@ export function computeDashboardSeries(
     for (const tx of report.transactions) {
       const bucket = lookup.get(tx.date);
       if (!bucket) continue;
-      if (tx.type === 'income') bucket.income = Number((bucket.income + tx.amount).toFixed(2));
-      else bucket.expense = Number((bucket.expense + tx.amount).toFixed(2));
+      if (tx.type === 'income') {
+        bucket.income = Number((bucket.income + tx.amount).toFixed(2));
+      } else if (isCountedAsExpense(tx)) {
+        bucket.expense = Number((bucket.expense + tx.amount).toFixed(2));
+      }
     }
     return buckets;
   }
@@ -225,8 +233,11 @@ export function computeDashboardSeries(
       const idx = Math.min(buckets.length - 1, Math.max(0, Math.floor((dayNum - 1) / 7)));
       const bucket = buckets[idx];
       if (!bucket) continue;
-      if (tx.type === 'income') bucket.income = Number((bucket.income + tx.amount).toFixed(2));
-      else bucket.expense = Number((bucket.expense + tx.amount).toFixed(2));
+      if (tx.type === 'income') {
+        bucket.income = Number((bucket.income + tx.amount).toFixed(2));
+      } else if (isCountedAsExpense(tx)) {
+        bucket.expense = Number((bucket.expense + tx.amount).toFixed(2));
+      }
     }
     return buckets;
   }
@@ -234,6 +245,7 @@ export function computeDashboardSeries(
   // Daily: top categories present on this date, or a single day column
   const byCat = new Map<TransactionCategory, { income: number; expense: number }>();
   for (const tx of report.transactions) {
+    if (isUdhaarRepaymentTransaction(tx)) continue;
     const cur = byCat.get(tx.category) ?? { income: 0, expense: 0 };
     if (tx.type === 'income') cur.income = Number((cur.income + tx.amount).toFixed(2));
     else cur.expense = Number((cur.expense + tx.amount).toFixed(2));
@@ -333,11 +345,14 @@ export function buildExpenseReport(
   const expenseItems: TransactionItem[] = [];
   let totalIncome = 0;
   let totalExpense = 0;
+  let totalDebtRepayment = 0;
 
   for (const tx of filtered) {
     if (tx.type === 'income') {
       totalIncome += tx.amount;
       incomeItems.push(tx);
+    } else if (isUdhaarRepaymentTransaction(tx)) {
+      totalDebtRepayment += tx.amount;
     } else {
       totalExpense += tx.amount;
       expenseItems.push(tx);
@@ -346,6 +361,7 @@ export function buildExpenseReport(
 
   const roundedIncome = Number(totalIncome.toFixed(2));
   const roundedExpense = Number(totalExpense.toFixed(2));
+  const roundedRepayment = Number(totalDebtRepayment.toFixed(2));
 
   return {
     period,
@@ -354,7 +370,10 @@ export function buildExpenseReport(
     endDate,
     totalIncome: roundedIncome,
     totalExpense: roundedExpense,
-    netBalance: Number((roundedIncome - roundedExpense).toFixed(2)),
+    totalDebtRepayment: roundedRepayment,
+    netBalance: Number(
+      (roundedIncome - roundedExpense - roundedRepayment).toFixed(2)
+    ),
     transactionCount: filtered.length,
     incomeCount: incomeItems.length,
     expenseCount: expenseItems.length,
@@ -1465,11 +1484,12 @@ export function canSharePdfFiles(): boolean {
 export async function sharePdfBlob(
   blob: Blob,
   filename: string,
-  title: string
+  title: string,
+  caption?: string
 ): Promise<'shared' | 'cancelled'> {
   const safeName = sanitizePdfFilename(filename, 'EasyDay-Expense-Report.pdf');
   if (isNativeAndroid()) {
-    const res = await shareAndroidPdf(blob, safeName, title);
+    const res = await shareAndroidPdf(blob, safeName, title, caption);
     return res.shared ? 'shared' : 'cancelled';
   }
   if (typeof File === 'undefined' || typeof navigator.share !== 'function') {
@@ -1479,6 +1499,7 @@ export async function sharePdfBlob(
   try {
     await navigator.share({
       title,
+      ...(caption ? { text: caption } : {}),
       files: [file],
     });
     return 'shared';

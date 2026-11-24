@@ -5,8 +5,10 @@ import {
   Firestore,
   getDocsFromServer,
   getFirestore,
+  initializeFirestore,
   limit,
   query,
+  setLogLevel,
   where,
 } from 'firebase/firestore';
 
@@ -23,7 +25,23 @@ const firebaseConfig = {
 export const app: FirebaseApp =
   getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-export const db: Firestore = getFirestore(app);
+// EasyDay is offline-first; suppress internal SDK 10s watch-stream offline console errors
+// while preserving structured error handling in all app services.
+setLogLevel('silent');
+
+function createFirestoreInstance(firebaseApp: FirebaseApp): Firestore {
+  const isBrowser = typeof window !== 'undefined';
+  try {
+    return initializeFirestore(firebaseApp, {
+      ...(isBrowser ? { experimentalForceLongPolling: true } : {}),
+      ignoreUndefinedProperties: true,
+    });
+  } catch {
+    return getFirestore(firebaseApp);
+  }
+}
+
+export const db: Firestore = createFirestoreInstance(app);
 export const auth: Auth = getAuth(app);
 
 export enum OperationType {
@@ -98,8 +116,12 @@ export function isOfflineError(error: unknown): boolean {
 
   return (
     code === 'unavailable' ||
+    code === 'deadline-exceeded' ||
     msg.includes('client is offline') ||
     msg.includes('network') ||
+    msg.includes('timeout') ||
+    msg.includes('timed out') ||
+    msg.includes('could not reach cloud firestore backend') ||
     msg.includes('failed to get document because the client is offline')
   );
 }

@@ -223,6 +223,7 @@ export function markBillAsPaidWithRecurrence(
       amount: target.amount,
       dueDate: nextDue,
       accountNumber: target.accountNumber,
+      photoId: target.photoId,
       photoDataUrl: target.photoDataUrl,
       repeat: target.repeat,
       customIntervalDays: target.customIntervalDays,

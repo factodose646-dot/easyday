@@ -2,6 +2,8 @@ import { TOOLS } from '../data/tools';
 import { Language, Theme, ToolId } from '../types';
 import zaidiEmblemUrl from '../assets/zaidi-emblem.png';
 
+import { migrateLegacyBillPhotosToIndexedDB } from './photoStorage';
+
 export interface StartupPreferences {
   language: Language;
   theme: Theme;
@@ -88,8 +90,8 @@ export function readStoredPreferences(): StartupPreferences {
  * Performs essential application initialization:
  * 1. Reads and validates local user preferences (language, theme, recent tools).
  * 2. Applies document root lang/dir/theme classes before dashboard mount.
- * 3. Preloads the original ZAIDI INTERACTIVE emblem asset.
- * 4. Awaits web font readiness with timeout protection.
+ * 3. Safely migrates any legacy inline bill photos into IndexedDB without blocking startup.
+ * 4. Preloads the original ZAIDI INTERACTIVE emblem asset & awaits fonts.
  */
 export async function initializeEasyDayWorkspace(
   onProgress?: (percent: number) => void
@@ -97,7 +99,7 @@ export async function initializeEasyDayWorkspace(
   onProgress?.(15);
 
   const preferences = readStoredPreferences();
-  onProgress?.(40);
+  onProgress?.(35);
 
   if (typeof document !== 'undefined') {
     const root = document.documentElement;
@@ -105,7 +107,14 @@ export async function initializeEasyDayWorkspace(
     root.dir = preferences.language === 'ur' ? 'rtl' : 'ltr';
     root.classList.toggle('dark', preferences.theme === 'dark');
   }
-  onProgress?.(60);
+  onProgress?.(55);
+
+  // Run safe, resumable bill photo migration with a protective timeout so UI always starts
+  await Promise.race([
+    migrateLegacyBillPhotosToIndexedDB().catch(() => undefined),
+    new Promise<void>((resolve) => window.setTimeout(resolve, 4000)),
+  ]);
+  onProgress?.(75);
 
   await Promise.all([
     preloadImage(zaidiEmblemUrl),

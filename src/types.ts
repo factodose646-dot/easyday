@@ -8,6 +8,7 @@ export type ToolId =
   | 'udhaar-manager'
   | 'bills-reminder'
   | 'expense-tracker'
+  | 'kameti-manager'
   | 'notes'
   | 'age-calculator';
 

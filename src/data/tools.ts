@@ -23,6 +23,13 @@ export const TOOLS: ToolDefinition[] = [
     iconText: 'text-white',
   },
   {
+    id: 'kameti-manager',
+    category: 'finance',
+    featured: true,
+    iconBg: 'bg-teal-400',
+    iconText: 'text-[#040D21]',
+  },
+  {
     id: 'notes',
     category: 'productivity',
     featured: false,

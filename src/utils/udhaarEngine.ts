@@ -6,6 +6,8 @@ export type UdhaarStatus = 'pending' | 'partial' | 'paid';
 export interface UdhaarDashboardMetrics {
   totalGivenRemaining: number;
   totalBorrowedRemaining: number;
+  totalPaymentsReceived: number;
+  totalPaymentsMade: number;
   netOutstanding: number; // positive = net receivable, negative = net payable
   activeTransactionsCount: number;
   paidTransactionsCount: number;
@@ -72,10 +74,13 @@ export function computeUdhaarDashboard(
 ): UdhaarDashboardMetrics {
   let totalGivenRemaining = 0;
   let totalBorrowedRemaining = 0;
+  let totalPaymentsReceived = 0;
+  let totalPaymentsMade = 0;
   let activeTransactionsCount = 0;
   let paidTransactionsCount = 0;
 
   for (const tx of transactions) {
+    const paid = getTransactionPaidAmount(tx);
     const remaining = getTransactionRemaining(tx);
     const status = getTransactionStatus(tx);
 
@@ -87,14 +92,18 @@ export function computeUdhaarDashboard(
 
     if (tx.direction === 'given') {
       totalGivenRemaining = roundCurrency(totalGivenRemaining + remaining);
+      totalPaymentsReceived = roundCurrency(totalPaymentsReceived + paid);
     } else {
       totalBorrowedRemaining = roundCurrency(totalBorrowedRemaining + remaining);
+      totalPaymentsMade = roundCurrency(totalPaymentsMade + paid);
     }
   }
 
   return {
     totalGivenRemaining,
     totalBorrowedRemaining,
+    totalPaymentsReceived,
+    totalPaymentsMade,
     netOutstanding: roundCurrency(totalGivenRemaining - totalBorrowedRemaining),
     activeTransactionsCount,
     paidTransactionsCount,

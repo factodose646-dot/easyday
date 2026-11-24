@@ -137,6 +137,7 @@ public class PdfExportPlugin extends Plugin {
         String rawFilename = call.getString("filename", "EasyDay-Expense-Report.pdf");
         String base64Data = call.getString("base64Data");
         String title = call.getString("title", "EasyDay Expense Report");
+        String caption = call.getString("caption", "");
 
         if (base64Data == null || base64Data.isEmpty()) {
             call.reject("PDF data is missing.");
@@ -179,6 +180,9 @@ public class PdfExportPlugin extends Plugin {
         shareIntent.setType("application/pdf");
         shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
         shareIntent.putExtra(Intent.EXTRA_SUBJECT, safeFilename);
+        if (caption != null && !caption.trim().isEmpty()) {
+            shareIntent.putExtra(Intent.EXTRA_TEXT, caption);
+        }
         shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
         Intent chooser = Intent.createChooser(shareIntent, title);
@@ -255,6 +259,34 @@ public class PdfExportPlugin extends Plugin {
             call.resolve(res);
         } catch (ActivityNotFoundException ex) {
             call.reject("No app available to share this text.", ex);
+        }
+    }
+
+    @PluginMethod
+    public void openExternalUrl(PluginCall call) {
+        String url = call.getString("url", "");
+        if (url == null || (!url.startsWith("https://") && !url.startsWith("http://"))) {
+            call.reject("Only valid http/https URLs are supported.");
+            return;
+        }
+
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+        try {
+            Activity activity = getActivity();
+            if (activity != null) {
+                activity.startActivity(intent);
+            } else {
+                getContext().startActivity(intent);
+            }
+            JSObject res = new JSObject();
+            res.put("opened", true);
+            call.resolve(res);
+        } catch (ActivityNotFoundException ex) {
+            JSObject res = new JSObject();
+            res.put("opened", false);
+            call.resolve(res);
         }
     }
 

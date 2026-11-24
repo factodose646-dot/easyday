@@ -21,7 +21,7 @@ export const SplashPreviewModal: React.FC<SplashPreviewModalProps> = ({
     }
 
     const start = performance.now();
-    const duration = 2200;
+    const duration = 8000;
     let rafId = 0;
 
     const tick = (now: number) => {

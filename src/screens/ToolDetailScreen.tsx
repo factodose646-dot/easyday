@@ -7,12 +7,21 @@ import { ToolIcon } from '../components/ToolIcon';
 import { AgeCalculatorTool } from '../components/tools/AgeCalculatorTool';
 import { BillsReminderTool } from '../components/tools/BillsReminderTool';
 import { ExpenseTrackerTool } from '../components/tools/ExpenseTrackerTool';
+import { KametiManagerTool } from '../components/tools/KametiManagerTool';
 import { NotesTool } from '../components/tools/NotesTool';
 import { UdhaarManagerTool } from '../components/tools/UdhaarManagerTool';
+
+export type QuickAddKind = 'expense' | 'udhaar' | 'note';
+
+export interface QuickAddRequest {
+  kind: QuickAddKind;
+  nonce: number;
+}
 
 interface ToolDetailScreenProps {
   toolId: ToolId;
   language: Language;
+  quickAddRequest?: QuickAddRequest | null;
   onBack: () => void;
   t: TranslationBundle;
 }
@@ -20,6 +29,7 @@ interface ToolDetailScreenProps {
 export const ToolDetailScreen: React.FC<ToolDetailScreenProps> = ({
   toolId,
   language,
+  quickAddRequest = null,
   onBack,
   t,
 }) => {
@@ -58,15 +68,40 @@ export const ToolDetailScreen: React.FC<ToolDetailScreenProps> = ({
       {/* Active Tool Workspace */}
       <div>
         {toolId === 'udhaar-manager' && (
-          <UdhaarManagerTool language={language} t={toolT.udhaar} />
+          <UdhaarManagerTool
+            language={language}
+            t={toolT.udhaar}
+            quickAddNonce={
+              quickAddRequest?.kind === 'udhaar' ? quickAddRequest.nonce : null
+            }
+          />
         )}
         {toolId === 'bills-reminder' && (
           <BillsReminderTool language={language} t={toolT.bills} />
         )}
         {toolId === 'expense-tracker' && (
-          <ExpenseTrackerTool language={language} t={toolT.expense} />
+          <ExpenseTrackerTool
+            language={language}
+            t={toolT.expense}
+            quickAddTrigger={
+              quickAddRequest?.kind === 'expense'
+                ? { type: 'expense', nonce: quickAddRequest.nonce }
+                : null
+            }
+          />
         )}
-        {toolId === 'notes' && <NotesTool language={language} t={toolT.notes} />}
+        {toolId === 'kameti-manager' && (
+          <KametiManagerTool language={language} t={toolT.kameti} />
+        )}
+        {toolId === 'notes' && (
+          <NotesTool
+            language={language}
+            t={toolT.notes}
+            quickAddNonce={
+              quickAddRequest?.kind === 'note' ? quickAddRequest.nonce : null
+            }
+          />
+        )}
         {toolId === 'age-calculator' && (
           <AgeCalculatorTool language={language} t={toolT.age} />
         )}

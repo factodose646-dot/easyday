@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
   ArrowDownLeft,
@@ -9,6 +9,8 @@ import {
   CheckCircle2,
   Clock,
   Copy,
+  FileDown,
+  FileText,
   MessageCircle,
   Pencil,
   Phone,
@@ -25,12 +27,24 @@ import { ToolTranslationBundle } from '../../i18n/toolTranslations';
 import { Language } from '../../types';
 import { shareAndroidText } from '../../utils/androidBridge';
 import {
+  canSharePdfFiles,
+  saveExpenseReportPdf,
+  sharePdfBlob,
+} from '../../utils/expenseReport';
+import {
+  emitFinanceUpdatedEvent,
+  persistUdhaarDeleteSynced,
+  persistUdhaarEntryEditSynced,
+  persistUdhaarPaymentAddedSynced,
+} from '../../utils/financeSync';
+import {
   generateId,
   getCurrentMonthISO,
+  getStorageErrorMessage,
   getTodayISO,
+  StorageWriteResult,
   UdhaarContact,
   UdhaarDirection,
-  UdhaarPayment,
   udhaarStorage,
   UdhaarTransaction,
 } from '../../utils/storage';
@@ -48,10 +62,19 @@ import {
   roundCurrency,
   UdhaarStatus,
 } from '../../utils/udhaarEngine';
+import {
+  buildCustomerUdhaarStatement,
+  buildStatementShareCaption,
+  createUdhaarStatementPdf,
+  getUdhaarStatementFilename,
+} from '../../utils/udhaarStatement';
+import { UdhaarReminderModal } from './UdhaarReminderModal';
+import { UdhaarStatementModal } from './UdhaarStatementModal';
 
 interface UdhaarManagerToolProps {
   language: Language;
   t: ToolTranslationBundle['udhaar'];
+  quickAddNonce?: number | null;
 }
 
 type ActiveSubTab = 'people' | 'transactions' | 'summary';
@@ -66,6 +89,7 @@ type DeleteConfirmTarget =
 export const UdhaarManagerTool: React.FC<UdhaarManagerToolProps> = ({
   language,
   t,
+  quickAddNonce = null,
 }) => {
   const [contacts, setContacts] = useState<UdhaarContact[]>(() =>
     udhaarStorage.loadContacts()
@@ -73,6 +97,7 @@ export const UdhaarManagerTool: React.FC<UdhaarManagerToolProps> = ({
   const [transactions, setTransactions] = useState<UdhaarTransaction[]>(() =>
     udhaarStorage.loadTransactions()
   );
+  const lastQuickAddNonceRef = useRef<number | null>(null);
 
   const [subTab, setSubTab] = useState<ActiveSubTab>('people');
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
@@ -84,6 +109,7 @@ export const UdhaarManagerTool: React.FC<UdhaarManagerToolProps> = ({
     getCurrentMonthISO()
   );
   const [copiedBanner, setCopiedBanner] = useState<string | null>(null);
+  const [storageError, setStorageError] = useState<string | null>(null);
 
   // Person Add/Edit modal
   const [personModalOpen, setPersonModalOpen] = useState(false);
@@ -119,14 +145,29 @@ export const UdhaarManagerTool: React.FC<UdhaarManagerToolProps> = ({
   // Delete confirmation modal
   const [deleteTarget, setDeleteTarget] = useState<DeleteConfirmTarget | null>(null);
 
-  const persistContacts = (next: UdhaarContact[]) => {
-    setContacts(next);
-    udhaarStorage.saveContacts(next);
+  // Phase 5: Customer PDF Statement & WhatsApp Payment Reminder modals
+  const [statementContactId, setStatementContactId] = useState<string | null>(null);
+  const [reminderContactId, setReminderContactId] = useState<string | null>(null);
+  const [pdfBusyContactId, setPdfBusyContactId] = useState<string | null>(null);
+
+  const persistContacts = (next: UdhaarContact[]): StorageWriteResult => {
+    const res = udhaarStorage.saveContacts(next);
+    if (res.ok) {
+      setContacts(next);
+      setStorageError(null);
+      emitFinanceUpdatedEvent();
+    }
+    return res;
   };
 
-  const persistTransactions = (next: UdhaarTransaction[]) => {
-    setTransactions(next);
-    udhaarStorage.saveTransactions(next);
+  const persistTransactions = (next: UdhaarTransaction[]): StorageWriteResult => {
+    const res = udhaarStorage.saveTransactions(next);
+    if (res.ok) {
+      setTransactions(next);
+      setStorageError(null);
+      emitFinanceUpdatedEvent();
+    }
+    return res;
   };
 
   const contactById = useMemo(() => {
@@ -225,6 +266,24 @@ export const UdhaarManagerTool: React.FC<UdhaarManagerToolProps> = ({
     [transactions, paymentModalTxId]
   );
 
+  const statementContact = useMemo(
+    () =>
+      statementContactId
+        ? contacts.find((c) => c.id === statementContactId) ?? null
+        : null,
+    [contacts, statementContactId]
+  );
+
+  const reminderContact = useMemo(
+    () =>
+      reminderContactId
+        ? contacts.find((c) => c.id === reminderContactId) ?? null
+        : null,
+    [contacts, reminderContactId]
+  );
+
+  const pdfShareSupported = useMemo(() => canSharePdfFiles(), []);
+
   // Handlers
   const openAddPersonModal = () => {
     setEditingPersonId(null);
@@ -250,23 +309,29 @@ export const UdhaarManagerTool: React.FC<UdhaarManagerToolProps> = ({
       return;
     }
     const now = Date.now();
-    if (editingPersonId) {
-      persistContacts(
-        contacts.map((c) =>
+    const nextContacts = editingPersonId
+      ? contacts.map((c) =>
           c.id === editingPersonId
             ? { ...c, name: trimmedName, phone: personPhone.trim(), updatedAt: now }
             : c
         )
+      : [
+          {
+            id: generateId('ucon'),
+            name: trimmedName,
+            phone: personPhone.trim(),
+            createdAt: now,
+            updatedAt: now,
+          },
+          ...contacts,
+        ];
+
+    const res = persistContacts(nextContacts);
+    if (!res.ok) {
+      setPersonError(
+        getStorageErrorMessage(res.errorCode || 'UNKNOWN_STORAGE_ERROR', language)
       );
-    } else {
-      const created: UdhaarContact = {
-        id: generateId('ucon'),
-        name: trimmedName,
-        phone: personPhone.trim(),
-        createdAt: now,
-        updatedAt: now,
-      };
-      persistContacts([created, ...contacts]);
+      return;
     }
     setPersonModalOpen(false);
   };
@@ -286,6 +351,14 @@ export const UdhaarManagerTool: React.FC<UdhaarManagerToolProps> = ({
     setEntryError(null);
     setEntryModalOpen(true);
   };
+
+  useEffect(() => {
+    if (!quickAddNonce) return;
+    if (lastQuickAddNonceRef.current === quickAddNonce) return;
+    lastQuickAddNonceRef.current = quickAddNonce;
+    openAddEntryModal();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quickAddNonce]);
 
   const openEditEntryModal = (tx: UdhaarTransaction) => {
     setEditingEntryId(tx.id);
@@ -339,24 +412,45 @@ export const UdhaarManagerTool: React.FC<UdhaarManagerToolProps> = ({
     }
 
     const roundedAmount = roundCurrency(numericAmount);
+    const prevContacts = contacts;
+
     if (editingEntryId) {
-      const nextTxs = transactions.map((tx) => {
-        if (tx.id !== editingEntryId) return tx;
-        const paid = getTransactionPaidAmount(tx);
-        return {
-          ...tx,
-          contactId: resolvedContactId,
-          direction: entryDirection,
-          amount: roundedAmount,
-          paidAmount: Math.min(paid, roundedAmount),
-          date: entryDate,
-          dueDate: entryDueDate.trim() || undefined,
-          description: entryDescription.trim(),
-          updatedAt: now,
-        };
-      });
-      persistContacts(nextContacts);
-      persistTransactions(nextTxs);
+      const existing = transactions.find((tx) => tx.id === editingEntryId);
+      if (!existing) {
+        setEntryModalOpen(false);
+        return;
+      }
+      const updatedEntry: UdhaarTransaction = {
+        ...existing,
+        contactId: resolvedContactId,
+        direction: entryDirection,
+        amount: roundedAmount,
+        date: entryDate,
+        dueDate: entryDueDate.trim() || undefined,
+        description: entryDescription.trim(),
+        updatedAt: now,
+      };
+      const syncRes = persistUdhaarEntryEditSynced(
+        nextContacts,
+        updatedEntry,
+        language
+      );
+      if (!syncRes.ok) {
+        if (syncRes.paidAmountConflict !== undefined) {
+          setEntryError(
+            `${t.errors.amountBelowPaid} (${formatPKR(syncRes.paidAmountConflict)})`
+          );
+        } else {
+          setEntryError(
+            syncRes.errorMessage ||
+              getStorageErrorMessage('UNKNOWN_STORAGE_ERROR', language)
+          );
+        }
+        return;
+      }
+      setContacts(syncRes.contacts);
+      setTransactions(syncRes.udhaarTransactions);
+      setStorageError(null);
     } else {
       const createdTx: UdhaarTransaction = {
         id: generateId('utx'),
@@ -371,12 +465,27 @@ export const UdhaarManagerTool: React.FC<UdhaarManagerToolProps> = ({
         createdAt: now,
         updatedAt: now,
       };
-      persistContacts(
-        nextContacts.map((c) =>
-          c.id === resolvedContactId ? { ...c, updatedAt: now } : c
-        )
+      const updatedContacts = nextContacts.map((c) =>
+        c.id === resolvedContactId ? { ...c, updatedAt: now } : c
       );
-      persistTransactions([createdTx, ...transactions]);
+      const contactsRes = persistContacts(updatedContacts);
+      if (!contactsRes.ok) {
+        setEntryError(
+          getStorageErrorMessage(
+            contactsRes.errorCode || 'UNKNOWN_STORAGE_ERROR',
+            language
+          )
+        );
+        return;
+      }
+      const txRes = persistTransactions([createdTx, ...transactions]);
+      if (!txRes.ok) {
+        persistContacts(prevContacts);
+        setEntryError(
+          getStorageErrorMessage(txRes.errorCode || 'UNKNOWN_STORAGE_ERROR', language)
+        );
+        return;
+      }
     }
 
     setEntryModalOpen(false);
@@ -409,89 +518,88 @@ export const UdhaarManagerTool: React.FC<UdhaarManagerToolProps> = ({
       return;
     }
 
-    const now = Date.now();
-    const newPayment: UdhaarPayment = {
-      id: generateId('upay'),
-      amount: Math.min(numericPay, remaining),
-      date: paymentDate,
-      note: paymentNote.trim(),
-      createdAt: now,
-    };
-
-    const nextTxs = transactions.map((tx) => {
-      if (tx.id !== paymentTargetTx.id) return tx;
-      const updatedPayments = [newPayment, ...tx.payments];
-      const totalPaid = roundCurrency(
-        updatedPayments.reduce((s, p) => s + p.amount, 0)
+    const syncRes = persistUdhaarPaymentAddedSynced(
+      paymentTargetTx.id,
+      numericPay,
+      paymentDate,
+      paymentNote.trim(),
+      language
+    );
+    if (!syncRes.ok) {
+      setPaymentError(
+        syncRes.errorMessage ||
+          getStorageErrorMessage('UNKNOWN_STORAGE_ERROR', language)
       );
-      return {
-        ...tx,
-        payments: updatedPayments,
-        paidAmount: Math.min(tx.amount, totalPaid),
-        updatedAt: now,
-      };
-    });
-
-    persistTransactions(nextTxs);
+      return;
+    }
+    setTransactions(syncRes.udhaarTransactions);
+    setStorageError(null);
     setPaymentModalTxId(null);
   };
 
   const handleMarkFullyPaid = (tx: UdhaarTransaction) => {
     const remaining = getTransactionRemaining(tx);
-    if (remaining <= 0) return;
-    const now = Date.now();
-    const fullPayment: UdhaarPayment = {
-      id: generateId('upay'),
-      amount: remaining,
-      date: getTodayISO(),
-      note: t.statusPaid,
-      createdAt: now,
-    };
-
-    persistTransactions(
-      transactions.map((item) => {
-        if (item.id !== tx.id) return item;
-        return {
-          ...item,
-          payments: [fullPayment, ...item.payments],
-          paidAmount: item.amount,
-          updatedAt: now,
-        };
-      })
+    if (remaining <= 0.009) return;
+    const syncRes = persistUdhaarPaymentAddedSynced(
+      tx.id,
+      remaining,
+      getTodayISO(),
+      t.statusPaid,
+      language
     );
+    if (!syncRes.ok) {
+      setStorageError(
+        syncRes.errorMessage ||
+          getStorageErrorMessage('UNKNOWN_STORAGE_ERROR', language)
+      );
+      return;
+    }
+    setTransactions(syncRes.udhaarTransactions);
+    setStorageError(null);
   };
 
   const handleConfirmDelete = () => {
     if (!deleteTarget) return;
-    if (deleteTarget.kind === 'person') {
-      persistContacts(contacts.filter((c) => c.id !== deleteTarget.contactId));
-      persistTransactions(
-        transactions.filter((tx) => tx.contactId !== deleteTarget.contactId)
+    const syncRes = persistUdhaarDeleteSynced(
+      deleteTarget.kind === 'person'
+        ? { kind: 'person', contactId: deleteTarget.contactId }
+        : deleteTarget.kind === 'entry'
+          ? { kind: 'entry', txId: deleteTarget.txId }
+          : {
+              kind: 'payment',
+              txId: deleteTarget.txId,
+              paymentId: deleteTarget.paymentId,
+            },
+      language
+    );
+    if (!syncRes.ok) {
+      setStorageError(
+        syncRes.errorMessage ||
+          getStorageErrorMessage('UNKNOWN_STORAGE_ERROR', language)
       );
-      if (selectedContactId === deleteTarget.contactId) {
-        setSelectedContactId(null);
-      }
-    } else if (deleteTarget.kind === 'entry') {
-      persistTransactions(transactions.filter((tx) => tx.id !== deleteTarget.txId));
-    } else if (deleteTarget.kind === 'payment') {
-      const now = Date.now();
-      persistTransactions(
-        transactions.map((tx) => {
-          if (tx.id !== deleteTarget.txId) return tx;
-          const remainingPayments = tx.payments.filter(
-            (p) => p.id !== deleteTarget.paymentId
-          );
-          const totalPaid = roundCurrency(
-            remainingPayments.reduce((s, p) => s + p.amount, 0)
-          );
-          return {
-            ...tx,
-            payments: remainingPayments,
-            paidAmount: Math.min(tx.amount, totalPaid),
-            updatedAt: now,
-          };
-        })
-      );
+      setDeleteTarget(null);
+      return;
+    }
+    setContacts(syncRes.contacts);
+    setTransactions(syncRes.udhaarTransactions);
+    setStorageError(null);
+    if (
+      deleteTarget.kind === 'person' &&
+      selectedContactId === deleteTarget.contactId
+    ) {
+      setSelectedContactId(null);
+    }
+    if (
+      deleteTarget.kind === 'person' &&
+      statementContactId === deleteTarget.contactId
+    ) {
+      setStatementContactId(null);
+    }
+    if (
+      deleteTarget.kind === 'person' &&
+      reminderContactId === deleteTarget.contactId
+    ) {
+      setReminderContactId(null);
     }
     setDeleteTarget(null);
   };
@@ -510,6 +618,56 @@ export const UdhaarManagerTool: React.FC<UdhaarManagerToolProps> = ({
     const shared = await shareAndroidText(text, title);
     if (!shared) {
       await handleCopyText(text);
+    }
+  };
+
+  const handleQuickDownloadStatementPdf = async (contact: UdhaarContact) => {
+    setPdfBusyContactId(contact.id);
+    try {
+      const statement = buildCustomerUdhaarStatement(contact, transactions, {
+        preset: 'all',
+      });
+      const generated = createUdhaarStatementPdf(statement, t, language);
+      const filename = getUdhaarStatementFilename(statement);
+      const outcome = await saveExpenseReportPdf(generated.blob, filename);
+      if (outcome.status === 'saved') {
+        setCopiedBanner(`${t.statement.exportSavedLocation} ${outcome.locationLabel}`);
+        window.setTimeout(() => setCopiedBanner(null), 3200);
+      }
+    } catch {
+      setStorageError(t.statement.exportError);
+    } finally {
+      setPdfBusyContactId(null);
+    }
+  };
+
+  const handleQuickShareStatementPdf = async (contact: UdhaarContact) => {
+    if (!pdfShareSupported) {
+      setStatementContactId(contact.id);
+      return;
+    }
+    setPdfBusyContactId(contact.id);
+    try {
+      const statement = buildCustomerUdhaarStatement(contact, transactions, {
+        preset: 'all',
+      });
+      const generated = createUdhaarStatementPdf(statement, t, language);
+      const filename = getUdhaarStatementFilename(statement);
+      const caption = buildStatementShareCaption(statement, language, t.statement);
+      const outcome = await sharePdfBlob(
+        generated.blob,
+        filename,
+        `${contact.name} — ${t.statement.pdf.title}`,
+        caption
+      );
+      if (outcome === 'shared') {
+        setCopiedBanner(`${t.statement.exportSuccess} ${filename}`);
+        window.setTimeout(() => setCopiedBanner(null), 2600);
+      }
+    } catch {
+      setStorageError(t.statement.exportError);
+    } finally {
+      setPdfBusyContactId(null);
     }
   };
 
@@ -797,6 +955,27 @@ export const UdhaarManagerTool: React.FC<UdhaarManagerToolProps> = ({
         </div>
       )}
 
+      {/* Storage Write Error Alert */}
+      {storageError && (
+        <div
+          role="alert"
+          className="rounded-2xl bg-rose-500/15 border border-rose-500/40 px-4 py-3 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center justify-between gap-2"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>{storageError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setStorageError(null)}
+            aria-label={t.cancelBtn}
+            className="min-w-[28px] min-h-[28px] flex items-center justify-center rounded-lg hover:bg-rose-500/15 shrink-0"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Main 4-Card Financial Dashboard */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-cyan-500/35 p-4 space-y-1">
@@ -995,14 +1174,14 @@ export const UdhaarManagerTool: React.FC<UdhaarManagerToolProps> = ({
               </div>
             </div>
 
-            {/* Share Account Statement Bar */}
+            {/* Share Statement, PDF Export & WhatsApp Reminder Bar */}
             {(() => {
               const statementText = formatWhatsAppAccountStatement(
                 activeContact,
                 transactions,
                 language
               );
-              const waUrl = buildWhatsAppUrl(activeContact.phone, statementText);
+              const isBusy = pdfBusyContactId === activeContact.id;
               return (
                 <div className="flex flex-wrap items-center gap-2 pt-2">
                   <button
@@ -1013,27 +1192,43 @@ export const UdhaarManagerTool: React.FC<UdhaarManagerToolProps> = ({
                     <Plus className="w-4 h-4" />
                     <span>{t.addEntryBtn}</span>
                   </button>
-                  <a
-                    href={waUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    type="button"
+                    data-testid="contact-view-statement-btn"
+                    onClick={() => setStatementContactId(activeContact.id)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-[#040D21] text-xs font-bold min-h-[42px]"
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span>{t.viewStatementBtn}</span>
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="contact-download-pdf-btn"
+                    disabled={isBusy}
+                    onClick={() => void handleQuickDownloadStatementPdf(activeContact)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 disabled:opacity-60 text-cyan-700 dark:text-cyan-300 text-xs font-bold min-h-[42px]"
+                  >
+                    <FileDown className="w-4 h-4" />
+                    <span>{t.downloadPdfBtn}</span>
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="contact-share-pdf-btn"
+                    disabled={isBusy}
+                    onClick={() => void handleQuickShareStatementPdf(activeContact)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-[#061026] hover:bg-slate-200/80 dark:hover:bg-[#11244D] disabled:opacity-60 text-slate-800 dark:text-slate-200 text-xs font-bold min-h-[42px]"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    <span>{t.sharePdfBtn}</span>
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="contact-whatsapp-reminder-btn"
+                    onClick={() => setReminderContactId(activeContact.id)}
                     className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold min-h-[42px]"
                   >
                     <MessageCircle className="w-4 h-4" />
-                    <span>{t.shareWhatsappStatement}</span>
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleNativeShareText(
-                        statementText,
-                        `${activeContact.name} Statement`
-                      )
-                    }
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 text-xs font-bold min-h-[42px]"
-                  >
-                    <Share2 className="w-4 h-4" />
-                    <span>{t.shareEntryBtn}</span>
+                    <span>{t.whatsappReminderBtn}</span>
                   </button>
                   <button
                     type="button"
@@ -1158,44 +1353,69 @@ export const UdhaarManagerTool: React.FC<UdhaarManagerToolProps> = ({
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {filteredContactSummaries.map((item) => (
-                <button
+                <article
                   key={item.contact.id}
-                  type="button"
-                  onClick={() => setSelectedContactId(item.contact.id)}
-                  className="text-start rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-[#1B315E] hover:border-cyan-500 dark:hover:border-cyan-400 p-4 flex items-center justify-between gap-3 transition-colors min-h-[84px]"
+                  className="rounded-2xl bg-white dark:bg-[#0B1836] border border-slate-200 dark:border-[#1B315E] hover:border-cyan-500 dark:hover:border-cyan-400 p-4 flex flex-col justify-between gap-3 transition-colors"
                 >
-                  <div className="min-w-0 space-y-1">
-                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                      {item.contact.name}
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 tabular-nums truncate">
-                      {item.contact.phone ? `${item.contact.phone} · ` : ''}
-                      {item.activeCount} {t.activeSubLabel}
-                      {item.lastActivityDate ? ` · ${item.lastActivityDate}` : ''}
-                    </p>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedContactId(item.contact.id)}
+                    className="w-full text-start flex items-center justify-between gap-3 min-h-[52px]"
+                  >
+                    <div className="min-w-0 space-y-1">
+                      <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                        {item.contact.name}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 tabular-nums truncate">
+                        {item.contact.phone ? `${item.contact.phone} · ` : ''}
+                        {item.activeCount} {t.activeSubLabel}
+                        {item.lastActivityDate ? ` · ${item.lastActivityDate}` : ''}
+                      </p>
+                    </div>
 
-                  <div className="text-end shrink-0 tabular-nums space-y-0.5">
-                    <p
-                      className={`text-sm sm:text-base font-extrabold ${
-                        item.netBalance > 0
-                          ? 'text-cyan-700 dark:text-cyan-300'
+                    <div className="text-end shrink-0 tabular-nums space-y-0.5">
+                      <p
+                        className={`text-sm sm:text-base font-extrabold ${
+                          item.netBalance > 0
+                            ? 'text-cyan-700 dark:text-cyan-300'
+                            : item.netBalance < 0
+                              ? 'text-amber-700 dark:text-yellow-300'
+                              : 'text-emerald-600 dark:text-emerald-400'
+                        }`}
+                      >
+                        {formatPKR(item.netBalance)}
+                      </p>
+                      <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                        {item.netBalance > 0
+                          ? t.willReceiveBadge
                           : item.netBalance < 0
-                            ? 'text-amber-700 dark:text-yellow-300'
-                            : 'text-emerald-600 dark:text-emerald-400'
-                      }`}
+                            ? t.willPayBadge
+                            : t.settledBadge}
+                      </p>
+                    </div>
+                  </button>
+
+                  <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-[#1B315E]">
+                    <button
+                      type="button"
+                      data-testid={`person-share-statement-${item.contact.id}`}
+                      onClick={() => setStatementContactId(item.contact.id)}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-700 dark:text-cyan-300 text-xs font-bold min-h-[38px] whitespace-nowrap"
                     >
-                      {formatPKR(item.netBalance)}
-                    </p>
-                    <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                      {item.netBalance > 0
-                        ? t.willReceiveBadge
-                        : item.netBalance < 0
-                          ? t.willPayBadge
-                          : t.settledBadge}
-                    </p>
+                      <FileText className="w-3.5 h-3.5 shrink-0" />
+                      <span>{t.viewStatementBtn}</span>
+                    </button>
+                    <button
+                      type="button"
+                      data-testid={`person-whatsapp-reminder-${item.contact.id}`}
+                      onClick={() => setReminderContactId(item.contact.id)}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600/15 hover:bg-emerald-600/25 text-emerald-700 dark:text-emerald-300 text-xs font-bold min-h-[38px] whitespace-nowrap"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>{t.whatsappReminderBtn}</span>
+                    </button>
                   </div>
-                </button>
+                </article>
               ))}
             </div>
           )}
@@ -1283,6 +1503,24 @@ export const UdhaarManagerTool: React.FC<UdhaarManagerToolProps> = ({
             <h2 className="text-base font-bold text-slate-900 dark:text-white">
               {t.overallSummaryTitle}
             </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 tabular-nums text-xs">
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#061026] flex items-center justify-between">
+                <span className="text-slate-500 dark:text-slate-400">
+                  {t.paymentsReceivedTotalLabel}
+                </span>
+                <span className="font-extrabold text-cyan-700 dark:text-cyan-300">
+                  {formatPKR(dashboard.totalPaymentsReceived)}
+                </span>
+              </div>
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#061026] flex items-center justify-between">
+                <span className="text-slate-500 dark:text-slate-400">
+                  {t.paymentsMadeTotalLabel}
+                </span>
+                <span className="font-extrabold text-amber-700 dark:text-yellow-300">
+                  {formatPKR(dashboard.totalPaymentsMade)}
+                </span>
+              </div>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 tabular-nums text-xs">
               <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#061026] flex items-center justify-between">
                 <span className="text-slate-500 dark:text-slate-400">{t.tabPeople}</span>
@@ -1305,6 +1543,9 @@ export const UdhaarManagerTool: React.FC<UdhaarManagerToolProps> = ({
                 </span>
               </div>
             </div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              {t.cashflowSyncedHint}
+            </p>
           </div>
         </section>
       )}
@@ -1734,6 +1975,26 @@ export const UdhaarManagerTool: React.FC<UdhaarManagerToolProps> = ({
           </div>
         </div>
       )}
+
+      {/* Phase 5: Customer PDF Statement Preview, Date Range Filter, Download & WhatsApp Share */}
+      <UdhaarStatementModal
+        open={Boolean(statementContact)}
+        contact={statementContact}
+        transactions={transactions}
+        language={language}
+        t={t}
+        onClose={() => setStatementContactId(null)}
+      />
+
+      {/* Phase 5: Editable WhatsApp Payment Reminder Composer */}
+      <UdhaarReminderModal
+        open={Boolean(reminderContact)}
+        contact={reminderContact}
+        transactions={transactions}
+        language={language}
+        t={t}
+        onClose={() => setReminderContactId(null)}
+      />
     </div>
   );
 };

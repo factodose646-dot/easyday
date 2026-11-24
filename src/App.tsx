@@ -5,16 +5,22 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AdminPortal } from './components/admin/AdminPortal';
+import { AppLockScreen } from './components/AppLockScreen';
 import { BottomNav } from './components/BottomNav';
 import { DesktopNavRail } from './components/DesktopNavRail';
 import { GlobalAdOverlay } from './components/GlobalAdOverlay';
+import { QuickAddFab } from './components/QuickAddFab';
 import { SplashPreviewModal } from './components/SplashPreviewModal';
 import { SplashScreen } from './components/SplashScreen';
 import { useGlobalAdSystem } from './hooks/useGlobalAdSystem';
 import { TRANSLATIONS } from './i18n/translations';
 import { HomeScreen } from './screens/HomeScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
-import { ToolDetailScreen } from './screens/ToolDetailScreen';
+import {
+  QuickAddKind,
+  QuickAddRequest,
+  ToolDetailScreen,
+} from './screens/ToolDetailScreen';
 import { ToolsScreen } from './screens/ToolsScreen';
 import { Language, NavTab, Theme, ToolId } from './types';
 import {
@@ -22,17 +28,25 @@ import {
   readStoredPreferences,
 } from './utils/startupInit';
 import {
+  isNativeDialogGraceActive,
   minimizeAndroidApp,
+  registerAndroidAppStateChange,
   registerAndroidBackButton,
   syncAndroidStatusBar,
 } from './utils/androidBridge';
+import {
+  AppSecurityConfig,
+  loadSecurityConfig,
+  shouldAutoLockOnResume,
+} from './utils/appSecurity';
 import { syncAllBillRemindersAndOverdueAlerts } from './utils/billNotifications';
+import { BackupRestoreOutcome } from './utils/backupSystem';
 import { billsStorage } from './utils/storage';
 
 const STORAGE_LANG_KEY = 'easyday-language';
 const STORAGE_THEME_KEY = 'easyday-theme';
 const STORAGE_RECENTS_KEY = 'easyday-recent-tools';
-const MINIMUM_SPLASH_MS = 10000;
+const MINIMUM_SPLASH_MS = 8000;
 
 export default function App() {
   const initialPrefs = readStoredPreferences();
@@ -51,19 +65,33 @@ export default function App() {
   );
   const [splashPreviewOpen, setSplashPreviewOpen] = useState(false);
   const [adminModeOpen, setAdminModeOpen] = useState(false);
+  const [quickAddFabOpen, setQuickAddFabOpen] = useState(false);
+  const [quickAddRequest, setQuickAddRequest] = useState<QuickAddRequest | null>(
+    null
+  );
+  const [securityConfig, setSecurityConfig] = useState<AppSecurityConfig>(() =>
+    loadSecurityConfig()
+  );
+  const [isAppLocked, setIsAppLocked] = useState<boolean>(
+    () => loadSecurityConfig().pinEnabled
+  );
+  const [securityNotice, setSecurityNotice] = useState<string | null>(null);
 
   const adSystem = useGlobalAdSystem({
-    isReady: !showSplash,
-    isBlockedContext: adminModeOpen || splashPreviewOpen,
+    isReady: !showSplash && !isAppLocked,
+    isBlockedContext: adminModeOpen || splashPreviewOpen || isAppLocked,
   });
 
   const startupTimeRef = useRef<number>(performance.now());
   const initReadyRef = useRef<boolean>(false);
   const initPercentRef = useRef<number>(0);
+  const quickAddCounterRef = useRef<number>(0);
+  const lastActiveAtRef = useRef<number>(Date.now());
+  const backgroundedAtRef = useRef<number | null>(null);
 
   const t = TRANSLATIONS[language];
 
-  // Startup Splash Gate: enforces BOTH minimum 10s duration AND real initialization completion
+  // Startup Splash Gate: enforces BOTH minimum 8s duration AND real initialization completion
   useEffect(() => {
     if (!showSplash) return;
 
@@ -113,7 +141,7 @@ export default function App() {
         return;
       }
 
-      // Never display a fake 100% while either initialization or 10s minimum is incomplete
+      // Never display a fake 100% while either initialization or 8s minimum is incomplete
       const cappedByInit = initReadyRef.current
         ? Math.min(99, Math.round(timePercent))
         : Math.min(95, Math.round(timePercent), Math.round(initPercentRef.current * 0.92));
@@ -178,8 +206,107 @@ export default function App() {
     void syncAllBillRemindersAndOverdueAlerts(storedBills, language);
   }, [showSplash, language]);
 
+  // Phase 4: Automatic App Lock lifecycle (backgrounding, visibilitychange, and inactivity timer)
+  useEffect(() => {
+    if (showSplash || !securityConfig.pinEnabled) {
+      return;
+    }
+
+    const markUserActive = () => {
+      if (!isAppLocked) {
+        lastActiveAtRef.current = Date.now();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        if (!isNativeDialogGraceActive()) {
+          backgroundedAtRef.current = Date.now();
+          if (securityConfig.lockOnBackground) {
+            setIsAppLocked(true);
+          }
+        }
+      } else if (document.visibilityState === 'visible') {
+        const shouldLock = shouldAutoLockOnResume({
+          config: securityConfig,
+          lastActiveAtMs: lastActiveAtRef.current,
+          backgroundedAtMs: backgroundedAtRef.current,
+          nativeDialogGraceActive: isNativeDialogGraceActive(),
+        });
+        backgroundedAtRef.current = null;
+        if (shouldLock) {
+          setIsAppLocked(true);
+        } else {
+          lastActiveAtRef.current = Date.now();
+        }
+      }
+    };
+
+    const unregisterNativeState = registerAndroidAppStateChange((isActive) => {
+      if (!isActive) {
+        if (!isNativeDialogGraceActive()) {
+          backgroundedAtRef.current = Date.now();
+          if (securityConfig.lockOnBackground) {
+            setIsAppLocked(true);
+          }
+        }
+      } else {
+        const shouldLock = shouldAutoLockOnResume({
+          config: securityConfig,
+          lastActiveAtMs: lastActiveAtRef.current,
+          backgroundedAtMs: backgroundedAtRef.current,
+          nativeDialogGraceActive: isNativeDialogGraceActive(),
+        });
+        backgroundedAtRef.current = null;
+        if (shouldLock) {
+          setIsAppLocked(true);
+        } else {
+          lastActiveAtRef.current = Date.now();
+        }
+      }
+    });
+
+    const activityEvents: Array<keyof WindowEventMap> = [
+      'pointerdown',
+      'keydown',
+      'touchstart',
+      'scroll',
+    ];
+    for (const ev of activityEvents) {
+      window.addEventListener(ev, markUserActive, { passive: true });
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    let inactivityInterval: number | undefined;
+    if (securityConfig.inactivityTimeoutSeconds > 0 && !isAppLocked) {
+      inactivityInterval = window.setInterval(() => {
+        if (isNativeDialogGraceActive()) {
+          lastActiveAtRef.current = Date.now();
+          return;
+        }
+        const elapsedMs = Date.now() - lastActiveAtRef.current;
+        if (elapsedMs >= securityConfig.inactivityTimeoutSeconds * 1000) {
+          setIsAppLocked(true);
+        }
+      }, 1000);
+    }
+
+    return () => {
+      unregisterNativeState();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      for (const ev of activityEvents) {
+        window.removeEventListener(ev, markUserActive);
+      }
+      if (inactivityInterval !== undefined) {
+        window.clearInterval(inactivityInterval);
+      }
+    };
+  }, [isAppLocked, securityConfig, showSplash]);
+
   const handleSelectTab = useCallback(
     (tab: NavTab) => {
+      setQuickAddFabOpen(false);
+      setQuickAddRequest(null);
       setSelectedToolId(null);
       setActiveTab(tab);
       window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
@@ -189,6 +316,8 @@ export default function App() {
   );
 
   const handleSelectTool = useCallback((toolId: ToolId) => {
+    setQuickAddFabOpen(false);
+    setQuickAddRequest(null);
     setRecentToolIds((prev) => {
       const next = [toolId, ...prev.filter((id) => id !== toolId)].slice(0, 4);
       try {
@@ -203,6 +332,33 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   }, []);
 
+  const handleQuickAdd = useCallback((kind: QuickAddKind) => {
+    const toolMap: Record<QuickAddKind, ToolId> = {
+      expense: 'expense-tracker',
+      udhaar: 'udhaar-manager',
+      note: 'notes',
+    };
+    const targetToolId = toolMap[kind];
+    setQuickAddFabOpen(false);
+    setRecentToolIds((prev) => {
+      const next = [targetToolId, ...prev.filter((id) => id !== targetToolId)].slice(
+        0,
+        4
+      );
+      try {
+        localStorage.setItem(STORAGE_RECENTS_KEY, JSON.stringify(next));
+      } catch {
+        // Ignore storage errors
+      }
+      return next;
+    });
+    quickAddCounterRef.current += 1;
+    setQuickAddRequest({ kind, nonce: quickAddCounterRef.current });
+    setActiveTab('tools');
+    setSelectedToolId(targetToolId);
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  }, []);
+
   const handleToggleLanguage = useCallback(() => {
     setLanguage((prev) => (prev === 'en' ? 'ur' : 'en'));
   }, []);
@@ -211,10 +367,32 @@ export default function App() {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
   }, []);
 
+  const handleBackupRestored = useCallback((outcome: BackupRestoreOutcome) => {
+    const nextLang = outcome.restoredLanguage;
+    if (nextLang) {
+      setLanguage(nextLang);
+    }
+    if (outcome.restoredTheme) {
+      setTheme(outcome.restoredTheme);
+    }
+    if (outcome.restoredRecentToolIds) {
+      setRecentToolIds(outcome.restoredRecentToolIds);
+    }
+    const restoredBills = billsStorage.loadBills();
+    void syncAllBillRemindersAndOverdueAlerts(
+      restoredBills,
+      nextLang || language
+    );
+  }, [language]);
+
   // Android hardware / gesture Back button handling
   useEffect(() => {
     return registerAndroidBackButton(() => {
       if (showSplash) return;
+      if (isAppLocked) {
+        void minimizeAndroidApp();
+        return;
+      }
       if (adSystem.activePresentation) {
         adSystem.dismissActiveAd();
         return;
@@ -227,7 +405,12 @@ export default function App() {
         setAdminModeOpen(false);
         return;
       }
+      if (quickAddFabOpen) {
+        setQuickAddFabOpen(false);
+        return;
+      }
       if (selectedToolId !== null) {
+        setQuickAddRequest(null);
         setSelectedToolId(null);
         adSystem.notifyNavigationMoment();
         return;
@@ -243,10 +426,43 @@ export default function App() {
     activeTab,
     adSystem,
     adminModeOpen,
+    isAppLocked,
+    quickAddFabOpen,
     selectedToolId,
     showSplash,
     splashPreviewOpen,
   ]);
+
+  const handleLockNow = useCallback(() => {
+    const latest = loadSecurityConfig();
+    setSecurityConfig(latest);
+    if (latest.pinEnabled) {
+      setQuickAddFabOpen(false);
+      setSplashPreviewOpen(false);
+      setIsAppLocked(true);
+    }
+  }, []);
+
+  const handleUnlocked = useCallback((updatedConfig: AppSecurityConfig) => {
+    setSecurityConfig(updatedConfig);
+    lastActiveAtRef.current = Date.now();
+    backgroundedAtRef.current = null;
+    setIsAppLocked(false);
+  }, []);
+
+  const handleSecurityRecovered = useCallback(
+    (cleanConfig: AppSecurityConfig) => {
+      setSecurityConfig(cleanConfig);
+      lastActiveAtRef.current = Date.now();
+      backgroundedAtRef.current = null;
+      setIsAppLocked(false);
+      setSecurityNotice(t.settings.security.recoverySuccessToast);
+      window.setTimeout(() => {
+        setSecurityNotice(null);
+      }, 6500);
+    },
+    [t.settings.security.recoverySuccessToast]
+  );
 
   if (showSplash) {
     return (
@@ -254,6 +470,19 @@ export default function App() {
         progress={splashProgress}
         error={initError}
         onRetry={() => setInitAttempt((n) => n + 1)}
+      />
+    );
+  }
+
+  // Zero financial data exposed or rendered while App Lock is active
+  if (isAppLocked && securityConfig.pinEnabled) {
+    return (
+      <AppLockScreen
+        config={securityConfig}
+        language={language}
+        onUnlock={handleUnlocked}
+        onSecurityRecovered={handleSecurityRecovered}
+        t={t}
       />
     );
   }
@@ -287,13 +516,29 @@ export default function App() {
       {/* Scrollable App Content Canvas with Android Safe Areas */}
       <main className="flex-1 min-w-0 safe-app-main">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-7">
+          {securityNotice && (
+            <div
+              role="status"
+              className="mb-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/35 px-4 py-3 text-xs sm:text-sm font-semibold text-emerald-800 dark:text-emerald-200 flex items-center justify-between gap-3"
+            >
+              <span>{securityNotice}</span>
+              <button
+                type="button"
+                onClick={() => setSecurityNotice(null)}
+                className="text-xs font-bold underline shrink-0"
+              >
+                {t.settings.closeBtn}
+              </button>
+            </div>
+          )}
+
           {activeTab === 'home' && !selectedToolId && (
             <HomeScreen
               language={language}
               theme={theme}
-              recentToolIds={recentToolIds}
               announcement={adSystem.announcement}
               onSelectTool={handleSelectTool}
+              onQuickAdd={handleQuickAdd}
               onNavigateTab={handleSelectTab}
               onToggleLanguage={handleToggleLanguage}
               onToggleTheme={handleToggleTheme}
@@ -309,7 +554,9 @@ export default function App() {
             <ToolDetailScreen
               toolId={selectedToolId}
               language={language}
+              quickAddRequest={quickAddRequest}
               onBack={() => {
+                setQuickAddRequest(null);
                 setSelectedToolId(null);
                 adSystem.notifyNavigationMoment();
               }}
@@ -321,8 +568,15 @@ export default function App() {
             <SettingsScreen
               language={language}
               theme={theme}
+              securityConfig={securityConfig}
               onChangeLanguage={setLanguage}
               onChangeTheme={setTheme}
+              onSecurityConfigUpdated={(next) => {
+                setSecurityConfig(next);
+                lastActiveAtRef.current = Date.now();
+              }}
+              onLockNow={handleLockNow}
+              onBackupRestored={handleBackupRestored}
               onOpenSplashPreview={() => setSplashPreviewOpen(true)}
               onOpenAdminPanel={() => setAdminModeOpen(true)}
               t={t}
@@ -330,6 +584,20 @@ export default function App() {
           )}
         </div>
       </main>
+
+      {/* Global Quick Add (+) Floating Action Button */}
+      {!selectedToolId &&
+        !adminModeOpen &&
+        !splashPreviewOpen &&
+        !adSystem.activePresentation && (
+          <QuickAddFab
+            open={quickAddFabOpen}
+            onToggleOpen={() => setQuickAddFabOpen((prev) => !prev)}
+            onClose={() => setQuickAddFabOpen(false)}
+            onQuickAdd={handleQuickAdd}
+            t={t}
+          />
+        )}
 
       {/* Mobile Fixed Bottom Navigation (3 Tabs) */}
       <BottomNav
